@@ -14,15 +14,21 @@
 (defn is-child
 "Determines whether node is or can be a child of curr-node"
 [{:keys [id parent_id] :as node} curr-node]
-(println "\nbvisChild " node " -> " curr-node)
+;(println "\nisChild " node " -> " curr-node)
   (and
    (= parent_id (:id curr-node) )
    (not (empty? (seq (filter #(= id (:id %))   (:children curr-node)))))))
 
+(defn can-be-child
+"Determines whether node is or can be a child of curr-node"
+[{:keys [id parent_id] :as node} curr-node]
+;(println "\nisChild " node " -> " curr-node)
+  (and
+   (= parent_id (:id curr-node))))
+
 (defn add-node [root new-node]
-  (if (is-child new-node root)
+  (if (can-be-child new-node root)
     (do
-      (println "Yes.. is child")
       (assoc-in root [:children] (conj (:children root) new-node)))
     (let [buf-children (:children root)
           new-children (for [child buf-children]
@@ -33,6 +39,7 @@
 (defn- map-to-tree
   "Transform the navigation map into a parent-to-child tree so that for each node we store a lazyseq of children nodes."
   [flat-tree]
+  (println flat-tree)
   (let [res-tree (reduce add-node {} flat-tree)]
     (println res-tree)))
 
