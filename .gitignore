@@ -3,6 +3,7 @@
 /classes
 /checkouts
 /public/js/lib
+/public/js/_backup/*
 pom.xml
 pom.xml.asc
 *.jar

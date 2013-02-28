@@ -1,7 +1,9 @@
 (ns mailcrunch.server
   (:require
    [ring.adapter.jetty :as jetty]
-   [clojure.java.io :as io])
+   [clojure.java.io :as io]
+   [mailcrunch.backend.db :as mdb]
+   [mailcrunch.view.navtree :as navtree])
   (:use
    [ring.util.mime-type :only [ext-mime-type]]
    [ring.middleware.multipart-params :only [wrap-multipart-params]]
@@ -33,7 +35,8 @@
 (defn assemble-routes []
   (->
    (routes
-    (ANY "/static/*" [] static))
+    (ANY "/static/*" [] static)
+    (ANY "/navtree" [] navtree/handler))
    (wrap-trace-as-response-header)))
 
 
