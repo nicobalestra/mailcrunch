@@ -13,6 +13,8 @@
    [liberator.core :only [defresource wrap-trace-as-response-header]])
   )
 
+(defonce RPC_BASE_URL "/rpc")
+
 (let [static-dir (io/file "public")]
   (defresource static
 
@@ -32,11 +34,18 @@
     :last-modified (fn [{f ::file}] (.lastModified f))))
 
 
+(defn build-url [url]
+  (if (#{\/} (.charAt url 0))
+    (str RPC_BASE_URL url)
+    (str "/")
+    ))
+
 (defn assemble-routes []
   (->
    (routes
+    (ANY "/" [] "/public/index.html")
     (ANY "/static/*" [] static)
-    (ANY "/navtree" [] navtree/handler))
+    (ANY (build-url  "navtree") [] navtree/handler))
    (wrap-trace-as-response-header)))
 
 

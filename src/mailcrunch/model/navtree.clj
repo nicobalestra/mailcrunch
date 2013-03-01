@@ -27,21 +27,21 @@
    (= parent_id (:id curr-node))))
 
 (defn add-node [root new-node]
-  (if (can-be-child new-node root)
-    (do
-      (assoc-in root [:children] (conj (:children root) new-node)))
+  (if (and
+       (not (is-child new-node root))
+       (can-be-child new-node root))
+    (assoc-in root [:children] (vec (conj (:children root) new-node)))
     (let [buf-children (:children root)
           new-children (for [child buf-children]
-                         (add-node child new-node))]
-      (assoc-in root [:children] new-children))))
+                           (add-node child new-node))]
+      (assoc-in root [:children] (vec new-children)))))
 
 
 (defn- map-to-tree
   "Transform the navigation map into a parent-to-child tree so that for each node we store a lazyseq of children nodes."
   [flat-tree]
-  (println flat-tree)
-  (let [res-tree (reduce add-node {} flat-tree)]
-    (println res-tree)))
+  (let [tree (reduce add-node {} flat-tree)]
+    tree))
 
 (defn get-navtree []
   (map-to-tree
