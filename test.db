@@ -1,0 +1,1076 @@
+--
+-- PostgreSQL database cluster dump
+--
+
+\connect postgres
+
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+
+--
+-- Roles
+--
+
+CREATE ROLE mailcrunch;
+ALTER ROLE mailcrunch WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION PASSWORD 'md5c3958981e554201a9ba37037f2ba05ea';
+CREATE ROLE mailjure;
+ALTER ROLE mailjure WITH NOSUPERUSER INHERIT NOCREATEROLE CREATEDB LOGIN NOREPLICATION PASSWORD 'md5d909dfa50a69c5c27d7bf7636f51d0af' VALID UNTIL 'infinity';
+CREATE ROLE postgres;
+ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION;
+
+
+--
+-- Role memberships
+--
+
+GRANT postgres TO mailcrunch WITH ADMIN OPTION GRANTED BY postgres;
+
+
+
+
+--
+-- Database creation
+--
+
+CREATE DATABASE book WITH TEMPLATE = template0 OWNER = postgres;
+CREATE DATABASE mailcrunch WITH TEMPLATE = template0 OWNER = postgres;
+REVOKE ALL ON DATABASE mailcrunch FROM PUBLIC;
+REVOKE ALL ON DATABASE mailcrunch FROM postgres;
+GRANT ALL ON DATABASE mailcrunch TO postgres;
+GRANT CONNECT,TEMPORARY ON DATABASE mailcrunch TO PUBLIC;
+GRANT TEMPORARY ON DATABASE mailcrunch TO mailcrunch;
+GRANT CREATE,CONNECT ON DATABASE mailcrunch TO mailcrunch WITH GRANT OPTION;
+CREATE DATABASE mailjure WITH TEMPLATE = template0 OWNER = postgres;
+REVOKE ALL ON DATABASE mailjure FROM PUBLIC;
+REVOKE ALL ON DATABASE mailjure FROM postgres;
+GRANT ALL ON DATABASE mailjure TO postgres;
+GRANT CONNECT,TEMPORARY ON DATABASE mailjure TO PUBLIC;
+GRANT ALL ON DATABASE mailjure TO mailjure WITH GRANT OPTION;
+REVOKE ALL ON DATABASE template1 FROM PUBLIC;
+REVOKE ALL ON DATABASE template1 FROM postgres;
+GRANT ALL ON DATABASE template1 TO postgres;
+GRANT CONNECT ON DATABASE template1 TO PUBLIC;
+
+
+\connect book
+
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect mailcrunch
+
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- Name: delivery_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE delivery_id_seq
+    START WITH 19
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.delivery_id_seq OWNER TO mailcrunch;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: delivery; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE delivery (
+    userdef_id character varying(255) NOT NULL,
+    subject character varying(998) NOT NULL,
+    from_email_address character varying(256) NOT NULL,
+    friendly_name character varying(256),
+    body_html text,
+    body_text text,
+    id integer DEFAULT nextval('delivery_id_seq'::regclass) NOT NULL,
+    last_modified_date timestamp with time zone,
+    created_by bigint,
+    modified_by bigint,
+    creation_date timestamp with time zone
+);
+
+
+ALTER TABLE public.delivery OWNER TO mailcrunch;
+
+--
+-- Name: navtree; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE navtree (
+    id bigint NOT NULL,
+    parent_id bigint DEFAULT 0,
+    userdef_id character varying(100) NOT NULL,
+    label character varying,
+    acl character varying,
+    icon_url character varying
+);
+
+
+ALTER TABLE public.navtree OWNER TO mailcrunch;
+
+--
+-- Name: navtree_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE navtree_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.navtree_id_seq OWNER TO mailcrunch;
+
+--
+-- Name: navtree_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailcrunch
+--
+
+ALTER SEQUENCE navtree_id_seq OWNED BY navtree.id;
+
+
+--
+-- Name: operators_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE operators_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.operators_id_seq OWNER TO mailcrunch;
+
+--
+-- Name: operator; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE operator (
+    id integer DEFAULT nextval('operators_id_seq'::regclass) NOT NULL,
+    username character varying NOT NULL,
+    password character varying(30),
+    last_modified_date timestamp with time zone DEFAULT now(),
+    creation_date timestamp with time zone DEFAULT now(),
+    acl bit varying(255)
+);
+
+
+ALTER TABLE public.operator OWNER TO mailcrunch;
+
+--
+-- Name: pk; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE pk
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    CYCLE;
+
+
+ALTER TABLE public.pk OWNER TO mailcrunch;
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY navtree ALTER COLUMN id SET DEFAULT nextval('navtree_id_seq'::regclass);
+
+
+--
+-- Data for Name: delivery; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY delivery (userdef_id, subject, from_email_address, friendly_name, body_html, body_text, id, last_modified_date, created_by, modified_by, creation_date) FROM stdin;
+\.
+
+
+--
+-- Name: delivery_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('delivery_id_seq', 19, false);
+
+
+--
+-- Data for Name: navtree; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY navtree (id, parent_id, userdef_id, label, acl, icon_url) FROM stdin;
+0	\N	root_node	Mailcrunch	\N	\N
+3	0	recipients_node	Recipients	\N	\N
+2	0	deilvery_node	Deliveries	\N	\N
+4	2	delivery_test_node	Delivery Test	\N	\N
+\.
+
+
+--
+-- Name: navtree_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('navtree_id_seq', 4, true);
+
+
+--
+-- Data for Name: operator; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY operator (id, username, password, last_modified_date, creation_date, acl) FROM stdin;
+\.
+
+
+--
+-- Name: operators_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('operators_id_seq', 1, false);
+
+
+--
+-- Name: pk; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('pk', 1, false);
+
+
+--
+-- Name: delivery_id; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY delivery
+    ADD CONSTRAINT delivery_id PRIMARY KEY (id);
+
+
+--
+-- Name: navtree_pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY navtree
+    ADD CONSTRAINT navtree_pk PRIMARY KEY (id);
+
+
+--
+-- Name: operators_pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY operator
+    ADD CONSTRAINT operators_pk PRIMARY KEY (id);
+
+
+--
+-- Name: userdef_id_idx; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY delivery
+    ADD CONSTRAINT userdef_id_idx UNIQUE (userdef_id);
+
+
+--
+-- Name: delivery_created_by; Type: FK CONSTRAINT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY delivery
+    ADD CONSTRAINT delivery_created_by FOREIGN KEY (modified_by) REFERENCES operator(id);
+
+
+--
+-- Name: delivery_modified_by; Type: FK CONSTRAINT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY delivery
+    ADD CONSTRAINT delivery_modified_by FOREIGN KEY (modified_by) REFERENCES operator(id);
+
+
+--
+-- Name: parent_fk; Type: FK CONSTRAINT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY navtree
+    ADD CONSTRAINT parent_fk FOREIGN KEY (parent_id) REFERENCES navtree(id);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- Name: pk; Type: ACL; Schema: public; Owner: mailcrunch
+--
+
+REVOKE ALL ON SEQUENCE pk FROM PUBLIC;
+REVOKE ALL ON SEQUENCE pk FROM mailcrunch;
+GRANT ALL ON SEQUENCE pk TO mailcrunch;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect mailjure
+
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: common; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE common (
+    userdef_id character varying(255) NOT NULL,
+    cdata text,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE public.common OWNER TO mailjure;
+
+--
+-- Name: common_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE common_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.common_id_seq OWNER TO mailjure;
+
+--
+-- Name: common_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE common_id_seq OWNED BY common.id;
+
+
+--
+-- Name: mljdelivery; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE mljdelivery (
+    userdef_id character varying(255) NOT NULL,
+    subject character varying(998) NOT NULL,
+    from_email_address character varying(256) NOT NULL,
+    friendly_name character varying(256),
+    body_html text,
+    body_text text,
+    id integer NOT NULL,
+    last_modified_date timestamp with time zone,
+    created_by bigint,
+    modified_by bigint,
+    creation_date timestamp with time zone
+);
+
+
+ALTER TABLE public.mljdelivery OWNER TO mailjure;
+
+--
+-- Name: delivery_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE delivery_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.delivery_id_seq OWNER TO mailjure;
+
+--
+-- Name: delivery_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE delivery_id_seq OWNED BY mljdelivery.id;
+
+
+--
+-- Name: mljentities; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE mljentities (
+    entity_name character varying(50) NOT NULL,
+    last_modified_date timestamp with time zone DEFAULT now(),
+    creation_date timestamp with time zone DEFAULT now(),
+    modified_by bigint,
+    created_by bigint,
+    id integer NOT NULL,
+    configuration text,
+    alias character varying(50)
+);
+
+
+ALTER TABLE public.mljentities OWNER TO mailjure;
+
+--
+-- Name: mljEntities_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE "mljEntities_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public."mljEntities_id_seq" OWNER TO mailjure;
+
+--
+-- Name: mljEntities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE "mljEntities_id_seq" OWNED BY mljentities.id;
+
+
+--
+-- Name: mljoperator; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE mljoperator (
+    id integer NOT NULL,
+    username character varying NOT NULL,
+    password character varying(30),
+    last_modified_date timestamp with time zone DEFAULT now(),
+    creation_date timestamp with time zone DEFAULT now(),
+    acl bit varying(255)
+);
+
+
+ALTER TABLE public.mljoperator OWNER TO mailjure;
+
+--
+-- Name: mljrecipient; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE mljrecipient (
+    userdef_id character varying(255) NOT NULL,
+    firstname character varying(255),
+    lastname character varying(255),
+    email character varying(255),
+    middle_name character varying(255),
+    address1 character varying(255),
+    address2 character varying(255),
+    state character varying(255),
+    region character varying(255),
+    zip_postal_code character varying(50),
+    city character varying(255),
+    country character varying(100),
+    mobile_phone character varying(30),
+    landline_phone character varying(30),
+    id integer NOT NULL,
+    last_modified_date timestamp with time zone DEFAULT now(),
+    creation_date timestamp with time zone DEFAULT now(),
+    modified_by bigint,
+    created_by bigint
+);
+
+
+ALTER TABLE public.mljrecipient OWNER TO mailjure;
+
+--
+-- Name: operators_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE operators_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.operators_id_seq OWNER TO mailjure;
+
+--
+-- Name: operators_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE operators_id_seq OWNED BY mljoperator.id;
+
+
+--
+-- Name: pk; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE pk
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    CYCLE;
+
+
+ALTER TABLE public.pk OWNER TO postgres;
+
+--
+-- Name: recipient_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE recipient_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.recipient_id_seq OWNER TO mailjure;
+
+--
+-- Name: recipient_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE recipient_id_seq OWNED BY mljrecipient.id;
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY common ALTER COLUMN id SET DEFAULT nextval('common_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljdelivery ALTER COLUMN id SET DEFAULT nextval('delivery_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljentities ALTER COLUMN id SET DEFAULT nextval('"mljEntities_id_seq"'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljoperator ALTER COLUMN id SET DEFAULT nextval('operators_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljrecipient ALTER COLUMN id SET DEFAULT nextval('recipient_id_seq'::regclass);
+
+
+--
+-- Data for Name: common; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+COPY common (userdef_id, cdata, id) FROM stdin;
+\.
+
+
+--
+-- Name: common_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('common_id_seq', 1, false);
+
+
+--
+-- Name: delivery_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('delivery_id_seq', 19, true);
+
+
+--
+-- Name: mljEntities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('"mljEntities_id_seq"', 2, true);
+
+
+--
+-- Data for Name: mljdelivery; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+COPY mljdelivery (userdef_id, subject, from_email_address, friendly_name, body_html, body_text, id, last_modified_date, created_by, modified_by, creation_date) FROM stdin;
+delivery1	ddddddddd	ciccio@ciccio.com	friendly name	<p>bodyyyyyyyyyyy</p>	adskfhads	2	2012-12-19 23:46:22.21+00	\N	1	\N
+lello	ciccio	lalala	\N	\N	\N	5	\N	\N	\N	\N
+delivery288041312	aaa	aaa@gmail.com	aaa	<p>aaa</p>	\N	18	2013-01-04 11:05:47.533+00	1	1	2013-01-04 11:05:47.533+00
+	Test	nicobalestra@gmail.com	Nico Balestras	<p>This is <strong>my test</strong></p>	\N	19	2013-01-05 12:09:37.173+00	1	1	2013-01-04 11:25:38.853+00
+\.
+
+
+--
+-- Data for Name: mljentities; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+COPY mljentities (entity_name, last_modified_date, creation_date, modified_by, created_by, id, configuration, alias) FROM stdin;
+mljrecipient	2012-11-04 17:56:40.712269+00	2012-11-04 17:56:40.712269+00	\N	\N	3	{"pk" : "id", "fields" :\n\t{"id" :\n\t      {"label" : {"en_gb" : "Primary Key"},\n\t\t"type" : "Integer",\n\t\t"nullable" : "false",\n\t        "order" : "-1"\n\t      },\n\t"firstname" : {\n\t  \t"label" : {"en_gb" : "Firstname"},\n\t\t"type" : "String",\n\t\t"max-length" : "255",\n\t\t"nullable" : "true",\n\t\t"order" : "0"\n\t},\n\t"lastname" : {\n\t\t"label" : {"en_gb" : "Lastname"},\n\t\t"type": "String",\n\t\t"nullable" : "true",\n\t\t"max-length" : "255",\n\t\t"order" : "1"\t\n\t}\n }}\n	recipientTable
+mljdelivery	2012-11-04 17:56:40.712269+00	2012-11-04 17:56:40.712269+00	\N	\N	2	{\n\t"properties" :\n\t{\n\t\t"pk" : ["id"], \n\t\t"name" : "Delivery"\t\t\n\t},\n\t"actions": {\n\t   "send" : {\n\t\t  "label": {"en_gb" : "Send"},\n\t\t  "id" : "send-delivery",\n                  "icon" : "send_email.png", "href" : "/delivery/send/{{id}}"\n\t\t}\n\t},\n\t"fields" :\n\t{"id" :\n\t      {"label" : {"en_gb" : "Primary Key"},\n\t\t"type" : "Integer",\n\t\t"nullable" : "false",\n\t        "order" : "-1",\n\t\t"hidden" : "true"\t  \n\t      },\n\t"userdef_id" : {\n\t        "label" : {"en_gb" : "Unique Name"},\n\t        "type" : "String",\n\t        "nullable" : "true",\n\t        "order" : "-1",\n\t        "hidden" : "true"\t\n\t},\n\t"subject" : {\n\t  \t"label" : {"en_gb" : "Subject"},\n\t\t"type" : "String",\n\t\t"max-length" : "998",\n\t\t"nullable" : "false",\n\t\t"order" : "3"\n\t},\n\t"from_email_address" : {\n\t\t"label" : {"en_gb" : "From Address"},\n\t\t"type": "Email",\n\t\t"must-match" : "the pattern matching",\n\t\t"nullable" : "false",\n\t\t"max-length" : "100",\n\t\t"order" : "1"\t\n\t},\n\t"friendly_name" : {\n\t\t"label" : {"en_gb" : "Friendly Name"},\n\t\t"type" : "String",\n\t\t"max-length" : "998",\n\t\t"nullable" : "true",\n\t\t"order" : "1"\n\n\t},\n\t"body_html" : {\n\t\t"label" : {"en_gb" : "HTML Body"},\n\t\t"type" : "Text",\n\t\t"nullable" : "false",\n\t\t"order" : "4"\n\t},\n\t"last_modified_date" :{\n\t\t"label" : {"en_gb" : "Last Modified Date"},\n\t\t"type" : "DateTime",\n\t\t"nullable" : "true",\n\t    "order" : "-1",\n\t\t"hidden" : "true"\t  \n\t      },\n\t"modified_by" :{\n\t\t"label" : {"en_gb" : "Modified By"},\n\t\t"type" : "Integer",\n\t\t"nullable" : "true",\n\t    "order" : "-1",\n\t\t"hidden" : "true"\t  \n\t      },\n\t"created_by" :{\n\t\t"label" : {"en_gb" : "Created By"},\n\t\t"type" : "Integer",\n\t\t"nullable" : "true",\n\t    "order" : "-1",\n\t\t"hidden" : "true"\t  \n\t      },\n\t"creation_date" :{\n\t\t"label" : {"en_gb" : "Creation Date"},\n\t\t"type" : "DateTime",\n\t\t"nullable" : "true",\n\t    "order" : "-1",\n\t\t"hidden" : "true"\t  \n\t      }\n\n\n}}\n\t\t\n	deliveryTable
+\.
+
+
+--
+-- Data for Name: mljoperator; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+COPY mljoperator (id, username, password, last_modified_date, creation_date, acl) FROM stdin;
+1	nico	nico	2012-11-29 01:41:50.522129+00	2012-11-29 01:41:50.522129+00	\N
+\.
+
+
+--
+-- Data for Name: mljrecipient; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+COPY mljrecipient (userdef_id, firstname, lastname, email, middle_name, address1, address2, state, region, zip_postal_code, city, country, mobile_phone, landline_phone, id, last_modified_date, creation_date, modified_by, created_by) FROM stdin;
+rec1	Nico	Balestra	nicobalestra@gmail.com	\N	62, Robertson Street	\N	UK	\N	SW8 3TY	Lonodn	UK	\N	\N	2	2012-11-11 14:43:16.608332+00	2012-11-11 14:43:16.608332+00	\N	\N
+\.
+
+
+--
+-- Name: operators_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('operators_id_seq', 1, false);
+
+
+--
+-- Name: pk; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('pk', 1, false);
+
+
+--
+-- Name: recipient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('recipient_id_seq', 2, true);
+
+
+--
+-- Name: common_pk; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY common
+    ADD CONSTRAINT common_pk PRIMARY KEY (id);
+
+
+--
+-- Name: delvery_id; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljdelivery
+    ADD CONSTRAINT delvery_id PRIMARY KEY (id);
+
+
+--
+-- Name: idx_common_udef_id; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY common
+    ADD CONSTRAINT idx_common_udef_id UNIQUE (userdef_id);
+
+
+--
+-- Name: mljEntity_pk; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljentities
+    ADD CONSTRAINT "mljEntity_pk" PRIMARY KEY (id);
+
+
+--
+-- Name: operators_pk; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljoperator
+    ADD CONSTRAINT operators_pk PRIMARY KEY (id);
+
+
+--
+-- Name: recipient_pk; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljrecipient
+    ADD CONSTRAINT recipient_pk PRIMARY KEY (id);
+
+
+--
+-- Name: recipient_udef_id_idx; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljrecipient
+    ADD CONSTRAINT recipient_udef_id_idx UNIQUE (userdef_id);
+
+
+--
+-- Name: userdef_id_idx; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljdelivery
+    ADD CONSTRAINT userdef_id_idx UNIQUE (userdef_id);
+
+
+--
+-- Name: delivery_created_by; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljdelivery
+    ADD CONSTRAINT delivery_created_by FOREIGN KEY (modified_by) REFERENCES mljoperator(id);
+
+
+--
+-- Name: delivery_modified_by; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljdelivery
+    ADD CONSTRAINT delivery_modified_by FOREIGN KEY (modified_by) REFERENCES mljoperator(id);
+
+
+--
+-- Name: mljentity_created_by_idx; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljentities
+    ADD CONSTRAINT mljentity_created_by_idx FOREIGN KEY (created_by) REFERENCES mljoperator(id);
+
+
+--
+-- Name: mljentity_modified_by_idx; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljentities
+    ADD CONSTRAINT mljentity_modified_by_idx FOREIGN KEY (modified_by) REFERENCES mljoperator(id);
+
+
+--
+-- Name: recipient_createdby; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljrecipient
+    ADD CONSTRAINT recipient_createdby FOREIGN KEY (created_by) REFERENCES mljoperator(id);
+
+
+--
+-- Name: recipient_modifiedby; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljrecipient
+    ADD CONSTRAINT recipient_modifiedby FOREIGN KEY (modified_by) REFERENCES mljoperator(id);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- Name: pk; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON SEQUENCE pk FROM PUBLIC;
+REVOKE ALL ON SEQUENCE pk FROM postgres;
+GRANT ALL ON SEQUENCE pk TO postgres;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect postgres
+
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- Name: postgres; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON DATABASE postgres IS 'default administrative connection database';
+
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- Name: adminpack; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS adminpack WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION adminpack; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION adminpack IS 'administrative functions for PostgreSQL';
+
+
+--
+-- Name: cube; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS cube WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION cube; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION cube IS 'data type for multidimensional cubes';
+
+
+--
+-- Name: dict_xsyn; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS dict_xsyn WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION dict_xsyn; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION dict_xsyn IS 'text search dictionary template for extended synonym processing';
+
+
+--
+-- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION fuzzystrmatch; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION fuzzystrmatch IS 'determine similarities and distance between strings';
+
+
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
+-- Name: tablefunc; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS tablefunc WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION tablefunc; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION tablefunc IS 'functions that manipulate whole tables, including crosstab';
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect template1
+
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- Name: template1; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON DATABASE template1 IS 'default template for new databases';
+
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- PostgreSQL database cluster dump complete
+--
+

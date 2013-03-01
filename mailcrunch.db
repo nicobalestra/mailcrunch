@@ -1,0 +1,289 @@
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- Name: delivery_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE delivery_id_seq
+    START WITH 19
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.delivery_id_seq OWNER TO mailcrunch;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: delivery; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE delivery (
+    userdef_id character varying(255) NOT NULL,
+    subject character varying(998) NOT NULL,
+    from_email_address character varying(256) NOT NULL,
+    friendly_name character varying(256),
+    body_html text,
+    body_text text,
+    id integer DEFAULT nextval('delivery_id_seq'::regclass) NOT NULL,
+    last_modified_date timestamp with time zone,
+    created_by bigint,
+    modified_by bigint,
+    creation_date timestamp with time zone
+);
+
+
+ALTER TABLE public.delivery OWNER TO mailcrunch;
+
+--
+-- Name: navtree; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE navtree (
+    id bigint NOT NULL,
+    parent_id bigint DEFAULT 0,
+    userdef_id character varying(100) NOT NULL,
+    label character varying,
+    acl character varying,
+    icon_url character varying
+);
+
+
+ALTER TABLE public.navtree OWNER TO mailcrunch;
+
+--
+-- Name: navtree_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE navtree_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.navtree_id_seq OWNER TO mailcrunch;
+
+--
+-- Name: navtree_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailcrunch
+--
+
+ALTER SEQUENCE navtree_id_seq OWNED BY navtree.id;
+
+
+--
+-- Name: operators_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE operators_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.operators_id_seq OWNER TO mailcrunch;
+
+--
+-- Name: operator; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE operator (
+    id integer DEFAULT nextval('operators_id_seq'::regclass) NOT NULL,
+    username character varying NOT NULL,
+    password character varying(30),
+    last_modified_date timestamp with time zone DEFAULT now(),
+    creation_date timestamp with time zone DEFAULT now(),
+    acl bit varying(255)
+);
+
+
+ALTER TABLE public.operator OWNER TO mailcrunch;
+
+--
+-- Name: pk; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE pk
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    CYCLE;
+
+
+ALTER TABLE public.pk OWNER TO mailcrunch;
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY navtree ALTER COLUMN id SET DEFAULT nextval('navtree_id_seq'::regclass);
+
+
+--
+-- Data for Name: delivery; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY delivery (userdef_id, subject, from_email_address, friendly_name, body_html, body_text, id, last_modified_date, created_by, modified_by, creation_date) FROM stdin;
+\.
+
+
+--
+-- Name: delivery_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('delivery_id_seq', 19, false);
+
+
+--
+-- Data for Name: navtree; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY navtree (id, parent_id, userdef_id, label, acl, icon_url) FROM stdin;
+0	\N	root_node	Mailcrunch	\N	\N
+3	0	recipients_node	Recipients	\N	\N
+2	0	deilvery_node	Deliveries	\N	\N
+4	2	delivery_test_node	Delivery Test	\N	\N
+\.
+
+
+--
+-- Name: navtree_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('navtree_id_seq', 4, true);
+
+
+--
+-- Data for Name: operator; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY operator (id, username, password, last_modified_date, creation_date, acl) FROM stdin;
+\.
+
+
+--
+-- Name: operators_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('operators_id_seq', 1, false);
+
+
+--
+-- Name: pk; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('pk', 1, false);
+
+
+--
+-- Name: delivery_id; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY delivery
+    ADD CONSTRAINT delivery_id PRIMARY KEY (id);
+
+
+--
+-- Name: navtree_pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY navtree
+    ADD CONSTRAINT navtree_pk PRIMARY KEY (id);
+
+
+--
+-- Name: operators_pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY operator
+    ADD CONSTRAINT operators_pk PRIMARY KEY (id);
+
+
+--
+-- Name: userdef_id_idx; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY delivery
+    ADD CONSTRAINT userdef_id_idx UNIQUE (userdef_id);
+
+
+--
+-- Name: delivery_created_by; Type: FK CONSTRAINT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY delivery
+    ADD CONSTRAINT delivery_created_by FOREIGN KEY (modified_by) REFERENCES operator(id);
+
+
+--
+-- Name: delivery_modified_by; Type: FK CONSTRAINT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY delivery
+    ADD CONSTRAINT delivery_modified_by FOREIGN KEY (modified_by) REFERENCES operator(id);
+
+
+--
+-- Name: parent_fk; Type: FK CONSTRAINT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY navtree
+    ADD CONSTRAINT parent_fk FOREIGN KEY (parent_id) REFERENCES navtree(id);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- Name: pk; Type: ACL; Schema: public; Owner: mailcrunch
+--
+
+REVOKE ALL ON SEQUENCE pk FROM PUBLIC;
+REVOKE ALL ON SEQUENCE pk FROM mailcrunch;
+GRANT ALL ON SEQUENCE pk TO mailcrunch;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
