@@ -35,13 +35,30 @@ qx.Class.define("MC.view.main.GUI",
 	},
 	
     getNavigationTree : function(){
+		
 		// creates the tree
 		var tree = new qx.ui.tree.VirtualTree(null, "name", "children").set({
 			width : 200,
-			height : 400
+			height : 400,
+			iconPath: "icon_url",
+			openMode: "dblclick",
+			delegate : {
+				sorter: function(a, b){
+					return parseInt(a.getWeight()) - parseInt(b.getWeight());
+				}
+			}
 		});
+		
+		
+		
 		tree.setOpenMode("dblclick");
+		
+		tree.addListener("dblclick", function(e){
+			this.debug("Double click.. should open the form");
+		}, this);
+		
 		tree.addListener("changeSelection", function(e){
+			this.debug("changed selection");
 				var data = e.getData();
 				if (data.length > 0){
 					alert(data[0].getLabel());
@@ -55,6 +72,10 @@ qx.Class.define("MC.view.main.GUI",
 		// opens the 'Desktop' node
 		store.addListener("loaded", function() {
 			tree.openNode(tree.getModel().getChildren().getItem(0));
+		}, this);
+		
+		tree.getSelection().addListener("change", function(e) {
+			this.debug("Selection: " + tree.getSelection().getItem(0).getName());
 		}, this);
 		return tree;
 	},
