@@ -47,7 +47,7 @@ qx.Class.define("MC.view.main.GUI",
 					alert(data[0].getLabel());
 				}
 				});
-		var url = "/navtree";
+		var url = "/rpc/navtree";
 		var store = new qx.data.store.Json(url);
 		// connect the store and the tree
 		store.bind("model", tree, "model");

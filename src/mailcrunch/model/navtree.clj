@@ -1,5 +1,7 @@
 (ns mailcrunch.model.navtree
-  (:use [korma.core :only [exec-raw defentity]])
+  (:use [korma.core :only [exec-raw defentity]]
+        [cheshire.core :only [generate-string]]
+        [clojure.pprint])
   (:require [clojure.zip :as zip]))
 
 (defentity navtree)
@@ -26,31 +28,37 @@
   (and
    (= parent_id (:id curr-node))))
 
+(defn is-root [node]
+  (nil? (:parent_id node )))
+
 (defn add-node [root new-node]
-  (if (and
-       (not (is-child new-node root))
-       (can-be-child new-node root))
-    (assoc-in root [:children] (vec (conj (:children root) new-node)))
-    (let [buf-children (:children root)
-          new-children (for [child buf-children]
+  (if (is-root new-node)
+    new-node
+    (if (and
+         (not (is-child new-node root))
+         (can-be-child new-node root))
+      (assoc-in root [:children] (vec (conj (:children root) new-node)))
+      (let [buf-children (:children root)
+            new-children (for [child buf-children]
                            (add-node child new-node))]
-      (assoc-in root [:children] (vec new-children)))))
+        (assoc-in root [:children] (vec new-children))))))
 
 
 (defn- map-to-tree
   "Transform the navigation map into a parent-to-child tree so that for each node we store a lazyseq of children nodes."
   [flat-tree]
   (let [tree (reduce add-node {} flat-tree)]
-    tree))
+     tree))
 
 (defn get-navtree []
-  (map-to-tree
-   (exec-raw
-    ["WITH RECURSIVE root(id, parent_id, label) AS (
-        SELECT id, parent_id, label FROM navtree WHERE parent_id IS NULL
-        UNION ALL
-        SELECT n.id, n.parent_id, n.label
-        FROM root r, navtree n
-        WHERE n.parent_id = r.id)
-      SELECT * FROM root;"] :results))
-  {:ok "CIAO"})
+  (let [tree  (map-to-tree
+               (exec-raw
+                ["WITH RECURSIVE root(id, parent_id, name, icon_url) AS (
+                  SELECT id, parent_id, name, icon_url FROM navtree WHERE parent_id IS NULL
+                  UNION ALL
+                  SELECT n.id, n.parent_id, n.name, n.icon_url
+                  FROM root r, navtree n
+                  WHERE n.parent_id = r.id)
+                  SELECT * FROM root;"] :results))]
+    tree)
+  )

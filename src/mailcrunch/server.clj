@@ -7,6 +7,7 @@
   (:use
    [ring.util.mime-type :only [ext-mime-type]]
    [ring.middleware.multipart-params :only [wrap-multipart-params]]
+   [ring.middleware.json]
    [ring.util.response :only [header]]
    [compojure.handler :only [api]]
    [compojure.core :only [routes ANY]]
@@ -37,7 +38,7 @@
 (defn build-url [url]
   (if (#{\/} (.charAt url 0))
     (str RPC_BASE_URL url)
-    (str "/")
+    (str RPC_BASE_URL "/" url)
     ))
 
 (defn assemble-routes []
@@ -46,7 +47,8 @@
     (ANY "/" [] "/public/index.html")
     (ANY "/static/*" [] static)
     (ANY (build-url  "navtree") [] navtree/handler))
-   (wrap-trace-as-response-header)))
+   (wrap-trace-as-response-header)
+   (wrap-json-response)))
 
 
 
