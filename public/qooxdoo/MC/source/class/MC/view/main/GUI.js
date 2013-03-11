@@ -6,9 +6,15 @@ qx.Class.define("MC.view.main.GUI",
   extend : qx.ui.window.Window,
   construct : function(root){
 	  this._root = root;
+	  this.__controller = null;
+	  
   },
   members: {
 	show : function(root){
+		if (this.__controller == null){
+			throw new Error("Please set an instance of MC.controller.Controller before rendering the GUI");
+		}
+		
 		// Document is the application root
 		var doc = this._root;
 		var dockLayout = new qx.ui.layout.Dock();
@@ -24,62 +30,32 @@ qx.Class.define("MC.view.main.GUI",
 		//and the main window on the right
 		var horizontalSplitPane = new qx.ui.splitpane.Pane("horizontal");
 		horizontalSplitPane.setDecorator(null);
-		horizontalSplitPane.add(this.getNavigationTree(), 0);
+		//LEFT
+		this.navTree = new MC.view.main.NavTree();
+		horizontalSplitPane.add(this.navTree, 0);
+			
+		//RIGHT
+		//This will be the content depending on which element of the tree is selected
 		
-		//This will be the content depending on which element
-		var currentView = new qx.ui.core.Widget();
-		currentView.setDecorator(null);
-		horizontalSplitPane.add(currentView, 1);
+		//var currentView = new qx.ui.core.Widget();
+		//currentView.setDecorator(null);
+		var wm = new qx.ui.window.Manager();
+		this.__desktop = new qx.ui.window.Desktop(wm);
+		horizontalSplitPane.add(this.__desktop, 1);
+		
+		//Add LEFT and RIGHT to the main view
 		verticalSplit.add(horizontalSplitPane, 1);
 		dockLayoutComposite.add(verticalSplit);
+		
+		this.__controller.setNavTree(this.navTree);	
+		this.__controller.setDesktop(this.__desktop);
+
 	},
 	
-    getNavigationTree : function(){
-		
-		// creates the tree
-		var tree = new qx.ui.tree.VirtualTree(null, "name", "children").set({
-			width : 200,
-			height : 400,
-			iconPath: "icon_url",
-			openMode: "dblclick",
-			delegate : {
-				sorter: function(a, b){
-					return parseInt(a.getWeight()) - parseInt(b.getWeight());
-				}
-			}
-		});
-		
-		
-		
-		tree.setOpenMode("dblclick");
-		
-		tree.addListener("dblclick", function(e){
-			this.debug("Double click.. should open the form");
-		}, this);
-		
-		tree.addListener("changeSelection", function(e){
-			this.debug("changed selection");
-				var data = e.getData();
-				if (data.length > 0){
-					alert(data[0].getLabel());
-				}
-				});
-		var url = "/rpc/navtree";
-		var store = new qx.data.store.Json(url);
-		// connect the store and the tree
-		store.bind("model", tree, "model");
-		
-		// opens the 'Desktop' node
-		store.addListener("loaded", function() {
-			tree.openNode(tree.getModel().getChildren().getItem(0));
-		}, this);
-		
-		tree.getSelection().addListener("change", function(e) {
-			this.debug("Selection: " + tree.getSelection().getItem(0).getName());
-		}, this);
-		return tree;
+	setController: function(controller){
+		this.__controller = controller;
 	},
-	
+    
 	getMenuBar : function(){
 		var frame = new qx.ui.container.Composite(new qx.ui.layout.Grow());
 		var menu = new qx.ui.menubar.MenuBar();

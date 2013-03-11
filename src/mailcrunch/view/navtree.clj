@@ -6,7 +6,5 @@
 
 
 (defresource handler
-  :handle-ok (generate-string (get-navtree))
-  :available-media-types ["text/json" "application/json"]
-
-  )
+  :handle-ok  (get-navtree)
+  :available-media-types ["text/json" "application/json"]  )

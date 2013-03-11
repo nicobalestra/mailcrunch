@@ -58,6 +58,8 @@ qx.Class.define("MC.Application",
       */
 
 	  var gui = new MC.view.main.GUI(this.getRoot());
+	  var controller = MC.controller.Controller.getInstance();
+	  gui.setController(controller);
 	  gui.show();
     }
  }});

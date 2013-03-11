@@ -1,10 +1,11 @@
 (ns mailcrunch.model.navtree
-  (:use [korma.core :only [exec-raw defentity]]
-        [cheshire.core :only [generate-string]]
-        [clojure.pprint])
-  (:require [clojure.zip :as zip]))
+  (:use
+        [clojure.pprint]
+)
+  (:require [clojure.zip :as zip]
+            [mailcrunch.backend.navtree :as db]))
 
-(defentity navtree)
+
 
 (defrecord Tree [id parent_id userdef_id children icon_url])
 
@@ -51,14 +52,6 @@
      tree))
 
 (defn get-navtree []
-  (let [tree  (map-to-tree
-               (exec-raw
-                ["WITH RECURSIVE root(id, parent_id, name, icon_url, weight,view) AS (
-                  SELECT id, parent_id, name, icon_url, weight,view FROM navtree WHERE parent_id IS NULL
-                  UNION ALL
-                  SELECT n.id, n.parent_id, n.name, n.icon_url, n.weight,n.view
-                  FROM root r, navtree n
-                  WHERE n.parent_id = r.id)
-                  SELECT * FROM root;"] :results))]
+  (let [tree (map-to-tree (db/get-tree))]
     tree)
   )

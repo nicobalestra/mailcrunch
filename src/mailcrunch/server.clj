@@ -3,7 +3,8 @@
    [ring.adapter.jetty :as jetty]
    [clojure.java.io :as io]
    [mailcrunch.backend.db :as mdb]
-   [mailcrunch.view.navtree :as navtree])
+   [mailcrunch.view.navtree :as navtree]
+   [mailcrunch.view.delivery :as delivery])
   (:use
    [ring.util.mime-type :only [ext-mime-type]]
    [ring.middleware.multipart-params :only [wrap-multipart-params]]
@@ -46,7 +47,8 @@
    (routes
     (ANY "/" [] "/public/index.html")
     (ANY "/static/*" [] static)
-    (ANY (build-url  "navtree") [] navtree/handler))
+    (ANY (build-url  "navtree") [] navtree/handler)
+    (ANY (build-url "delivery/count") [] delivery/handle-delivery-count))
    (wrap-trace-as-response-header)
    (wrap-json-response)))
 
