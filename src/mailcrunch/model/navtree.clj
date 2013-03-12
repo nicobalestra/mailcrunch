@@ -1,7 +1,5 @@
 (ns mailcrunch.model.navtree
-  (:use
-        [clojure.pprint]
-)
+  (:use     [clojure.pprint])
   (:require [clojure.zip :as zip]
             [mailcrunch.backend.navtree :as db]))
 
@@ -53,5 +51,6 @@
 
 (defn get-navtree []
   (let [tree (map-to-tree (db/get-tree))]
+    ;(println "The tree: " tree)
     tree)
   )
