@@ -8,12 +8,16 @@
                        :delimiters ""}))
 
 
-(defmacro q-number-of [ref & filter]
-  `(let [basetmp# (-> (kc/select* ~ref)
+(defmacro q-number-of [table-ref & query]
+  `(let [basetmp# (-> (kc/select* ~table-ref)
                       (kc/aggregate (~'count :*) :count))]
-    (if ~filter
+    (if ~query
        (-> basetmp#
-            (kc/where ~filter))
+            (kc/where (first ~@query)))
       basetmp#)))
 
+(defmacro q-get [table-ref & query]
+  `(let [basetmp# (kc/select* ~table-ref)]
+     (cond-> basetmp#
+             (not (empty? ~query)) (kc/where (first ~@query)))))
 

@@ -11,8 +11,9 @@ qx.Class.define("MC.model.delivery.RemoteTableModel", {
     _getContentUrl : function(){
       return "/rpc/delivery";
     },
-    _getColumns : function(){
-      
+    _setColumns: function(){
+      this.setColumnIds(["id", "subject", "from_email_address"]);
+      this.setColumnNamesById({id: "ID", subject: "Subject", from_email_address: "From"});
     }
    
   }

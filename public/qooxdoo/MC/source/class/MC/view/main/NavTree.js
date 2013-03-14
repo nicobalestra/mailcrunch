@@ -7,10 +7,12 @@ qx.Class.define("MC.view.main.NavTree",
   events: {"changeView" : "qx.event.type.Data"},
   construct : function(){
 	  this.base(arguments);
-	  
+	  this.setDecorator("main");
 	  this.setLabelPath("name");
+    this.setWidth(250);
+    this.setPadding(0);
     
-      this.setChildProperty("children")
+    this.setChildProperty("children")
     
 	  this.setup();
 	  

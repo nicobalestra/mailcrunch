@@ -10,6 +10,6 @@
 
 
 (defresource handle-delivery
-  :handle-ok (ch/generate-string {:subject "Ciccio"})
+  :handle-ok (ch/generate-string (model/get-deliveries))
   :available-media-types ["text/json" "application/json"]
  )

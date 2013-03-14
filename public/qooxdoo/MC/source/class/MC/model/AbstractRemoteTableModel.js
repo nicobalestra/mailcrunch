@@ -6,9 +6,21 @@ qx.Class.define("MC.model.AbstractRemoteTableModel", {
   },
   construct: function(columns){
     this.base(arguments);
+    this._setColumns();
   },
   members: {
   
+    _getCountUrl : function(){
+      throw new Error("You need to implement getCountUrl");
+    },
+    
+    _getContentUrl : function(){
+      throw new Error("You need to implement _getContentUrl");
+    },
+    
+    _setColumns : function(){
+      throw new Error("You need to implement _setColumns");
+    },
     _loadRowCount : function(){
       this.debug("Call to _loadRowCount");
       var count = this.__call(this._getCountUrl(), function(data){
@@ -21,19 +33,12 @@ qx.Class.define("MC.model.AbstractRemoteTableModel", {
     
     _loadRowData: function(firstRow, lastRow){
       this.debug("Call to _loadRowData with firstRow = " + firstRow + " and lastRow = " + lastRow);
-      var data = this.__call(this._getContentUrl(), function(data){
-        
-        this._onRowDataLoaded(data);
-      });
+      var data = this.__call(this._getContentUrl(), 
+                             function(data){
+                                 var dataObj = qx.lang.Json.parse(data);
+                                  this._onRowDataLoaded(dataObj);
+                             });
       
-    },
-    
-    _getCountUrl : function(){
-      throw new Error("You need to implement getCountUrl");
-    },
-    
-    _getContentUrl : function(){
-      throw new Error("You need to implement _getContentUrl");
     },
     
     __call : function(url, callback){
