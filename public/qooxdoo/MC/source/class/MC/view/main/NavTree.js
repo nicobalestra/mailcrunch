@@ -48,9 +48,7 @@ qx.Class.define("MC.view.main.NavTree",
 		}, this);
 		
 		this.getSelection().addListener("change", function(e) {
-			//this.__controller.handleView(this.getSelection().getItem(0).getView());	
 			this.fireDataEvent("changeView", this.getSelection().getItem(0).getView());
-			this.debug("Selection: " + this.getSelection().getItem(0).getView());			
 		}, this);
 	}
 

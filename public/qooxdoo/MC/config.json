@@ -38,7 +38,7 @@
   {
     "APPLICATION"  : "MC",
     "QOOXDOO_PATH" : "../../../public/qooxdoo",
-    "QXTHEME"      : "MC.theme.Theme",
+    "QXTHEME"      : "qx.theme.Indigo",
     "API_EXCLUDE"  : ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*", "${APPLICATION}.simulation.*"],
     "LOCALES"      : [ "en" ],
     "CACHE"        : "${TMPDIR}/qx${QOOXDOO_VERSION}/cache",

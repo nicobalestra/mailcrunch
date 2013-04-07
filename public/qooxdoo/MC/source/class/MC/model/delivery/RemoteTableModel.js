@@ -5,11 +5,8 @@ qx.Class.define("MC.model.delivery.RemoteTableModel", {
   },
   members: {
   
-    _getCountUrl : function(){
-      return "/rpc/delivery/count"
-    },
-    _getContentUrl : function(){
-      return "/rpc/delivery";
+    _getEntity: function(){
+      return "delivery";
     },
     _setColumns: function(){
       this.setColumnIds(["id", "subject", "from_email_address"]);
