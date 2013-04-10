@@ -53,7 +53,7 @@ qx.Class.define("MC.model.Query", {
 				req.setMethod(opts.method);
 			 
 			if (opts.params)
-			  req.setRequestData(opts.params);
+				req.setRequestData({":json" : opts.params});
 		 }
      req.setUrl(url);
      req.addListener("success", function(){

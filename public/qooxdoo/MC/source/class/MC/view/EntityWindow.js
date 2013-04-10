@@ -6,7 +6,7 @@ qx.Class.define("MC.view.EntityWindow",
 	  this.base(arguments);
     this.__desktop = desktop;
     this.addListener("beforeClose", this.handleClose, this);
-    
+    this.maximize();
   },
   members: {
     handleClose: function(){

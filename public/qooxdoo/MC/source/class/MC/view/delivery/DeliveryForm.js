@@ -119,7 +119,7 @@ qx.Class.define("MC.view.delivery.DeliveryForm",
       //Put the 
       save.addListener("execute", this.saveDelivery, this)
       var cancel = new qx.ui.form.Button("Cancel");
-    
+      cancel.addListener("execute", function(e){this.close();}, this);
       toReturn.add(send);
       toReturn.add(save);
       toReturn.add(cancel);
@@ -140,8 +140,9 @@ qx.Class.define("MC.view.delivery.DeliveryForm",
       
 			var query = new MC.model.Query("delivery");
 		  query.save(qx.util.Serializer.toNativeObject(model));
+			this.close();
 		
-			alert("Sending.. " + qx.util.Serializer.toJson(model));
+			//alert("Sending.. " + qx.util.Serializer.toJson(model));
     },
   /**
    * Called on start up of the form to set the content of the delivery we want to edit.

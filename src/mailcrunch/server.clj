@@ -49,7 +49,7 @@
     (ANY "/static/*" [] static)
     (ANY (build-url  "navtree") [] navtree/handler)
     (ANY (build-url "delivery/count") [] delivery/handle-delivery-count)
-    (ANY (build-url "delivery") [] (delivery/get-delivery nil))
+    (ANY (build-url "delivery") [] (delivery/handle-single-delivery nil))
 		(ANY (build-url "delivery/:id") [id] (fn [ctx] 
                                            (delivery/handle-single-delivery id)))
 

@@ -17,10 +17,19 @@
 
 
 (defresource handle-single-delivery [id]
-	:handle-ok (ch/generate-string (model/get-deliveries {:id (Integer. id)}))
+	:handle-ok (if (not (nil? id))
+							 (ch/generate-string (model/get-deliveries {:id (Integer. id)}))
+							 (ch/generate-string (model/get-deliveries)))
   :available-media-types ["text/json" "application/json"]
 	:method-allowed? (request-method-in :post :get :put :delete)
-	:post! (fn [ctx] (println "POSTED " ctx) {:result id})
+	:post! (fn [ctx]
+					 (let [id (-> ctx
+												(get-in [:request :form-params] )
+												(first)
+												(val)
+												(ch/parse-string true)
+												(model/save-delivery))]
+										 {:result id}))
 	:post-redirect? false
 		
 	:handle-created (fn [ctx] (get ctx :result))

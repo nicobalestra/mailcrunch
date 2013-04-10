@@ -21,3 +21,11 @@
      (cond-> basetmp#
              (not (empty? ~query)) (kc/where (first ~@query)))))
 
+(defn new-userdef-seq-val [entity]
+	(let [seq-name (-> (:table entity)
+										 (str "_userdef"))
+				query (str "select nextval('public." seq-name "'::text)")]
+		(println query)
+		(kc/exec-raw query :results)
+		))
+
