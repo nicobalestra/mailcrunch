@@ -2,16 +2,10 @@
   (:require [mailcrunch.backend.db :as db]
             [korma.core :as kc]))
 
+
 (kc/defentity ent-delivery
 		(kc/table :delivery)
-		(kc/prepare (fn [values]
-								 (let [seq-name (str "delivery_userdef")
-											 query    (str "select nextval('public." seq-name "'::text)")
-											 curr_userdef-id (:userdef_id values)]
-									 (if (nil? curr_userdef-id)
-										 (let [[{:keys [nextval]}]	 (kc/exec-raw query :results)]
-											(assoc values :userdef_id nextval))
-										 values)))))
+		(kc/prepare (db/insert-triggers ent-delivery)))
 
 (defn get-deliveries 
 	([] (kc/select ent-delivery))
@@ -33,3 +27,6 @@
 	(kc/insert ent-delivery
 						 (kc/values delivery)
 						 (kc/where {:id (delivery :id)})))
+							
+							
+							(insert-delivery {:subject "TEST2" :from_email_address "gino"})
