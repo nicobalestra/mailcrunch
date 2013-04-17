@@ -5,7 +5,7 @@
 
 (kc/defentity ent-delivery
 		(kc/table :delivery)
-		(kc/prepare (db/insert-triggers ent-delivery)))
+		(db/insert-triggers))
 
 (defn get-deliveries 
 	([] (kc/select ent-delivery))
@@ -29,4 +29,5 @@
 						 (kc/where {:id (delivery :id)})))
 							
 							
-							(insert-delivery {:subject "TEST2" :from_email_address "gino"})
+							
+		;(insert-delivery {:subject "TEST2" :from_email_address "gino"})
