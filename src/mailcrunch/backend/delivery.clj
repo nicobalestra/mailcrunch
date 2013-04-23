@@ -1,11 +1,13 @@
 (ns mailcrunch.backend.delivery
   (:require [mailcrunch.backend.db :as db]
+						[mailcrunch.backend.triggers :as triggers]
             [korma.core :as kc]))
+
 
 
 (kc/defentity ent-delivery
 		(kc/table :delivery)
-		(db/insert-triggers))
+		(triggers/prepare-fns))
 
 (defn get-deliveries 
 	([] (kc/select ent-delivery))
@@ -27,7 +29,3 @@
 	(kc/insert ent-delivery
 						 (kc/values delivery)
 						 (kc/where {:id (delivery :id)})))
-							
-							
-							
-		;(insert-delivery {:subject "TEST2" :from_email_address "gino"})

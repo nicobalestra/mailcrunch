@@ -3,6 +3,7 @@
  *
    #asset(qx/icon/${qx.icontheme}/22/actions/list-add.png)
    #asset(qx/icon/${qx.icontheme}/22/actions/list-remove.png)
+	 #asset(qx/icon/${qx.icontheme}/22/actions/view-refresh.png)
 */
 qx.Class.define("MC.view.AbstractEntityList",
 {
@@ -75,12 +76,19 @@ qx.Class.define("MC.view.AbstractEntityList",
         for (var row in selectedRow){
           this.debug("Going to remove row " + selectedRow[row]);
         }
-        
+				
       }, this);
       this.__deleteButton.setEnabled(false);
       part.add(this.__deleteButton);
       
-      
+      var part2 = new qx.ui.toolbar.Part();
+			toolbar.add(part2);
+			this.__refreshButton = new qx.ui.toolbar.Button("Refresh", "icon/22/actions/view-refresh.png");
+			this.__refreshButton.addListener("execute", function(e) {
+					this._refreshMyself();
+				}, this);
+			part2.add(this.__refreshButton);
+			
       return toolbar;
     },
 
@@ -101,7 +109,12 @@ qx.Class.define("MC.view.AbstractEntityList",
     },
     _getModel : function(){
         throw new Error("Please implement the function _getModel !");
-    }
+    },
+  	_refreshMyself : function(){
+			this._getModel().clearCache();
+			this._getModel().reloadData();			
+	  }
+
 
   }
   });

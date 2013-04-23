@@ -22,35 +22,37 @@ qx.Class.define("MC.view.main.NavTree",
 	
     setup : function(){
 		
-		this.setOpenMode("dblclick");
+		  this.setOpenMode("dblclick");
 		
-		this.addListener("dblclick", function(e){
-			this.debug("Double click.. should open the form");
-		}, this);
+  		this.addListener("dblclick", function(e){
+	  		this.debug("Double click.. should open the form");
+		  }, this);
 		
-		this.addListener("changeSelection", function(e){
-			this.debug("changed selection");
-				var data = e.getData();
-				if (data.length > 0){
-					this.debug("Selected..." + data[0].getView());
-				}
+		  this.addListener("changeSelection", function(e){
+			  this.debug("changed selection");
+			  	var data = e.getData();
+				  if (data.length > 0){
+				  	this.debug("Selected..." + data[0].getView());
+				  }
 				}, this);
 				
-		var url = "/rpc/navtree";
-		this.store = new qx.data.store.Json(url);
+		  var url = "/rpc/navtree";
+		  this.store = new qx.data.store.Json(url);
 		
-		// connect the store and the tree
-		this.store.bind("model", this, "model");
+		  // connect the store and the tree
+		  this.store.bind("model", this, "model");
 		
-		// opens the 'Desktop' node
-		this.store.addListener("loaded", function() {
-			this.openNode(this.getModel().getChildren().getItem(0));
-		}, this);
+		  // opens the 'Desktop' node
+		  this.store.addListener("loaded", function() {
+			   this.openNode(this.getModel().getChildren().getItem(0));
+		  }, this);
 		
-		this.getSelection().addListener("change", function(e) {
-			this.fireDataEvent("changeView", this.getSelection().getItem(0).getView());
-		}, this);
-	}
+		  this.getSelection().addListener("change", function(e) {
+		     if (this.getSelection().getItem(0) && this.getSelection().getItem(0).getView())
+				    this.fireDataEvent("changeView", this.getSelection().getItem(0).getView());
+			
+		   }, this);
+	  }
 
   } //Members
 

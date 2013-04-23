@@ -33,9 +33,10 @@ qx.Class.define("MC.model.AbstractRemoteTableModel", {
       throw new Error("Please implement the function _getEntity");
     },
     _loadRowData: function(firstRow, lastRow){
-      //this.debug("Call to _loadRowData with firstRow = " + firstRow + " and lastRow = " + lastRow);
+      this.debug("Call to _loadRowData with firstRow = " + firstRow + " and lastRow = " + lastRow);
       var query = new MC.model.Query(this._getEntity());
       query.addListener("resultsReady", function(results){
+				
                                            var data = results.getResults();
                                            var dataObj = qx.lang.Json.parse(data);
                                            this._onRowDataLoaded(dataObj);
@@ -61,7 +62,44 @@ qx.Class.define("MC.model.AbstractRemoteTableModel", {
       }, this);
         
       req.send();
-    }
+    },
+		
+		    /**
+     * Reloads the model and clears the local cache.
+     *
+     */
+    reloadData : function()
+    {
+      // If there is currently a request on its way, then this request will bring
+      // obsolete data -> Ignore it
+      if (this._firstLoadingBlock != -1) {
+        var cancelingSucceed = this._cancelCurrentRequest();
+        if (cancelingSucceed) {
+          // The request was canceled -> We're not loading any blocks any more
+          this._firstLoadingBlock = -1;
+          this._ignoreCurrentRequest = false;
+        } else {
+          // The request was not canceled -> Ignore it
+          this._ignoreCurrentRequest = true;
+        }
+        // Force clearing row cache, because of reloading data.
+        //this._clearCache = true;
+      }
+
+      this._clearCache=true;	
+
+      // Forget a possibly outstanding request
+      // (_loadRowCount will tell the listeners anyway, that the whole table
+      // changed)
+      //
+      // NOTE: This will inform the listeners as soon as the new row count is
+      // known
+      this._firstRowToLoad = -1;
+      this._lastRowToLoad = -1;
+      this._loadRowCountRequestRunning = true;
+      this._loadRowCount();
+    },
+
     
   }
 });

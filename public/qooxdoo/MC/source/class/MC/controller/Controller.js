@@ -24,14 +24,12 @@ qx.Class.define("MC.controller.Controller", {
         this.debug("Tryig to close all windows... ");
         this.closeAllDesktopWindows();
 	  	  this.debug("Opening window .. '" + e.getData() + "'");
-		    switch (e.getData()){
-			    case "delivery-new" :
-				    this.__openNewDelivery();
-				    break;
-			    case "delivery-list" :
-            this.__openDeliveryList();
-				    break;
-  			}
+				var action = e.getData();
+				action = action.replace("-", "_");
+			  action = action.charAt(0).toUpperCase() + action.substring(1); 
+			  if (this["__open" + action])
+ 			  	this["__open" + action].call(this);
+			
 		  },
     
      __openNewDelivery : function(){
@@ -42,7 +40,7 @@ qx.Class.define("MC.controller.Controller", {
           delivery.open();
 			},
     
-     __openDeliveryList : function(){
+     __openDelivery_list : function(){
         var deliveryList = new MC.view.delivery.DeliveryList(this.__desktop);
         deliveryList.center();
         deliveryList.open();

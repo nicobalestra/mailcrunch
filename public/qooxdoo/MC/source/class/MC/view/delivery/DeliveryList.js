@@ -34,6 +34,7 @@ qx.Class.define("MC.view.delivery.DeliveryList",
       
       var deliveryForm = new MC.view.delivery.DeliveryForm(id);
       deliveryForm.setModal(true);
+			deliveryForm.addListener("close", this._refreshMyself, this);
       
       this.__desktop.add(deliveryForm, {left: 0, right: 0});
       deliveryForm.open();
@@ -42,6 +43,5 @@ qx.Class.define("MC.view.delivery.DeliveryList",
     _getModel: function(){
       return new MC.model.delivery.RemoteTableModel();
     }
-    
   }
   });

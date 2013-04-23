@@ -1,5 +1,6 @@
 (ns mailcrunch.view.delivery
   (:require [mailcrunch.model.delivery :as model]
+						[mailcrunch.backend.mail :as mail]
             [cheshire.core :as ch])
   (:use [liberator.core :only [defresource request-method-in]]))
 
@@ -34,3 +35,20 @@
 		
 	:handle-created (fn [ctx] (get ctx :result))
  )
+
+(defresource handle-send-delivery [id]
+	:available-media-types ["text/json" "application/json"]
+	:method-allowed? (request-method-in :put)
+	:put! (fn [ctx]
+					 (let [id (-> ctx
+												(get-in [:request :form-params] )
+												(first)
+												(val)
+												(ch/parse-string true)
+												(model/save-delivery))]
+										 {:result id}))
+	:post-redirect? false
+		
+	:handle-created (fn [ctx] (get ctx :result))
+ )
+
