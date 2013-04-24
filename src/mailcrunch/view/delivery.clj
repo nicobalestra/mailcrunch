@@ -36,7 +36,7 @@
 	:handle-created (fn [ctx] (get ctx :result))
  )
 
-(defresource handle-send-delivery [id]
+(defresource handle-send-delivery 
 	:available-media-types ["text/json" "application/json"]
 	:method-allowed? (request-method-in :put)
 	:put! (fn [ctx]
@@ -45,7 +45,8 @@
 												(first)
 												(val)
 												(ch/parse-string true)
-												(model/save-delivery))]
+												(:id)
+												(mail/send-delivery))]
 										 {:result id}))
 	:post-redirect? false
 		

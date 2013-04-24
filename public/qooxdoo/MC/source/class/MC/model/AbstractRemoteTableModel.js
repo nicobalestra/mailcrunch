@@ -11,7 +11,7 @@ qx.Class.define("MC.model.AbstractRemoteTableModel", {
       throw new Error("You need to implement _setColumns");
     },
     _loadRowCount : function(){
-      var query = new MC.model.Query(this._getEntity());
+      var query = new MC.remote.Query(this._getEntity());
       query.addListener("resultsReady", 
                         function(results){
                           var obj = results.getJsonResults();
@@ -34,7 +34,7 @@ qx.Class.define("MC.model.AbstractRemoteTableModel", {
     },
     _loadRowData: function(firstRow, lastRow){
       this.debug("Call to _loadRowData with firstRow = " + firstRow + " and lastRow = " + lastRow);
-      var query = new MC.model.Query(this._getEntity());
+      var query = new MC.remote.Query(this._getEntity());
       query.addListener("resultsReady", function(results){
 				
                                            var data = results.getResults();
@@ -98,7 +98,7 @@ qx.Class.define("MC.model.AbstractRemoteTableModel", {
       this._lastRowToLoad = -1;
       this._loadRowCountRequestRunning = true;
       this._loadRowCount();
-    },
+    }
 
     
   }

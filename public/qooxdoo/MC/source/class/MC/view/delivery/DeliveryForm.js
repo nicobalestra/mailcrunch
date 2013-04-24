@@ -114,10 +114,10 @@ qx.Class.define("MC.view.delivery.DeliveryForm",
       var toReturn=new qx.ui.container.Composite(new qx.ui.layout.HBox(10, "center"));
 
       var send = new qx.ui.form.Button("Send");
-      var save = new qx.ui.form.Button("Save");
-
-      //Put the 
-      save.addListener("execute", this.saveDelivery, this)
+			send.addListener("execute", this.sendDelivery, this);
+      
+			var save = new qx.ui.form.Button("Save");
+			save.addListener("execute", this.saveDelivery, this)
       var cancel = new qx.ui.form.Button("Cancel");
       cancel.addListener("execute", function(e){this.close();}, this);
       toReturn.add(send);
@@ -128,22 +128,36 @@ qx.Class.define("MC.view.delivery.DeliveryForm",
   },
   //Save/update the current delivery form  
   saveDelivery: function(){
-      //Get the current form content.  
-			if (this.controller){
+    //Get the current form content.  
+		if (this.controller){
 				this.controller.setTarget(this.form)				
-			}else{
+		}else{
 				this.controller = new qx.data.controller.Form(this.initialModel, this.form);
-			}
+		}
       
-      var model = this.controller.createModel();
-      model.setBody_html(this.htmlEditor.__htmlArea.getCompleteHtml());
+    var model = this.controller.createModel();
+    model.setBody_html(this.htmlEditor.__htmlArea.getCompleteHtml());
       
-			var query = new MC.model.Query("delivery");
-		  query.save(qx.util.Serializer.toNativeObject(model));
-			this.close();
+		var query = new MC.remote.Query("delivery");
+		query.save(qx.util.Serializer.toNativeObject(model));
+		this.close();
+  },
 		
-			//alert("Sending.. " + qx.util.Serializer.toJson(model));
-    },
+	sendDelivery : function(){
+    //Get the current form content.  
+		if (this.controller){
+				this.controller.setTarget(this.form)				
+		}else{
+				this.controller = new qx.data.controller.Form(this.initialModel, this.form);
+		}
+      
+    var model = this.controller.createModel();
+		var id = model.getId();
+		
+		var rpc = new MC.remote.Delivery();
+		rpc.send(id);
+	},
+		
   /**
    * Called on start up of the form to set the content of the delivery we want to edit.
    **/  
@@ -151,7 +165,7 @@ qx.Class.define("MC.view.delivery.DeliveryForm",
     if (!this.deliveryRow)
         return;
     
-    var query = new MC.model.Query("delivery");
+    var query = new MC.remote.Query("delivery");
 
 		query.addListener("resultsReady", function(e){
       var jsonObj = e.getJsonResults();
