@@ -64,6 +64,41 @@ CREATE TABLE delivery (
 ALTER TABLE public.delivery OWNER TO mailcrunch;
 
 --
+-- Name: delivery_job; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE delivery_job (
+    id integer NOT NULL,
+    delivery_id bigint,
+    recipient_id bigint,
+    delivery_status integer
+);
+
+
+ALTER TABLE public.delivery_job OWNER TO mailcrunch;
+
+--
+-- Name: delivery_job_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE delivery_job_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.delivery_job_id_seq OWNER TO mailcrunch;
+
+--
+-- Name: delivery_job_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailcrunch
+--
+
+ALTER SEQUENCE delivery_job_id_seq OWNED BY delivery_job.id;
+
+
+--
 -- Name: delivery_userdef; Type: SEQUENCE; Schema: public; Owner: mailcrunch
 --
 
@@ -213,6 +248,13 @@ ALTER SEQUENCE recipient_id_seq OWNED BY recipient.id;
 -- Name: id; Type: DEFAULT; Schema: public; Owner: mailcrunch
 --
 
+ALTER TABLE ONLY delivery_job ALTER COLUMN id SET DEFAULT nextval('delivery_job_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailcrunch
+--
+
 ALTER TABLE ONLY navtree ALTER COLUMN id SET DEFAULT nextval('navtree_id_seq'::regclass);
 
 
@@ -231,9 +273,7 @@ COPY delivery (userdef_id, subject, from_email_address, friendly_name, body_html
 87	CICCIO	nicoletto@ciccio	\N	\N	\N	101	\N	\N	\N	\N
 88	CICCIO	nicoletto@ciccio.com	\N	\N	\N	102	\N	\N	\N	\N
 89	CICCIO	nicoletto@ciccio.com	\N	\N	\N	103	\N	\N	\N	\N
-95	TEST2	gi	\N	\N	\N	109	\N	\N	\N	\N
 96	TEST2	gio	\N	\N	\N	110	\N	\N	\N	\N
-97	TEST2	gino	\N	\N	\N	111	\N	\N	\N	\N
 98	TEST2	gino	\N	\N	\N	112	\N	\N	\N	\N
 99	TEST2	gino	\N	\N	\N	113	\N	\N	\N	\N
 105	gino	ahahah	\N	\N	\N	136	\N	\N	\N	\N
@@ -260,8 +300,12 @@ delivery1	test delivery	CAAAAAAAAAAAALLL	CAAAAAAAAAAAAAAAAALLL	\N	lsdksdf	19	\N	
 83	CICCIO	nicoYUUUUUUUUUU	\N	\N	\N	97	\N	\N	\N	\N
 84	CICCIO	nicolettoUCCCIUCCI	\N	\N	\N	98	\N	\N	\N	\N
 delivery147	TEEEEEEEEEEEEESTTTTTTTTTAAAAAAAAAAA	aaaaaaaaaaaaTEEEEEEEEEST	\N	\N	\N	154	\N	\N	\N	\N
-86	CICCIOAAAAAAAAAAAAAAA	nicoletto@cicciAAAAAAAAAAAAAAAAAA	\N	\N	\N	100	\N	\N	\N	\N
 delivery148	HHHHHHHHHH	hhhhhhhhhhhh	HHHHHHHHH	\N	\N	155	\N	\N	\N	\N
+delivery149	RPC	RPC	RPC	\N	\N	156	\N	\N	\N	\N
+95	TEST2	giNO	\N	\N	\N	109	\N	\N	\N	\N
+delivery150	RPC2	RPC2	RPC2	\N	\N	157	\N	\N	\N	\N
+86	CICCIOAAAAAAAAAAAAAAA	nicoletto@cicciAAAAAAAAAAAAAAAAAA	\N	<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title></title><meta http-equiv="Content-type" content="text/html; charset=UTF-8" /><style type="text/css">p { margin:0px; padding:0px; }</style></head><body style='background-color:rgba(0, 0, 0, 0);background-image:none;background-repeat:repeat;background-position:0% 0%;font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;font-size:16px;margin-top:0px;margin-bottom:0px;margin-left:0px;margin-right:0px;padding-top:5px;padding-bottom:5px;padding-left:5px;padding-right:5px;'><p><span style="font-family:Verdana;"><font size="4">Let's put something</font></span></p></body></html>	\N	100	\N	\N	\N	\N
+97	TEST2	nicobalestra@gmail.com	\N	<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title></title><meta http-equiv="Content-type" content="text/html; charset=UTF-8" /><style type="text/css">p { margin:0px; padding:0px; }</style></head><body style='background-color:rgba(0, 0, 0, 0);background-image:none;background-repeat:repeat;background-position:0% 0%;font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;font-size:16px;margin-top:0px;margin-bottom:0px;margin-left:0px;margin-right:0px;padding-top:5px;padding-bottom:5px;padding-left:5px;padding-right:5px;'><p><span style="font-family:Verdana;"><font size="4">Let's put something here</font></span></p></body></html>	\N	111	\N	\N	\N	\N
 \.
 
 
@@ -269,14 +313,29 @@ delivery148	HHHHHHHHHH	hhhhhhhhhhhh	HHHHHHHHH	\N	\N	155	\N	\N	\N	\N
 -- Name: delivery_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
 --
 
-SELECT pg_catalog.setval('delivery_id_seq', 155, true);
+SELECT pg_catalog.setval('delivery_id_seq', 157, true);
+
+
+--
+-- Data for Name: delivery_job; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY delivery_job (id, delivery_id, recipient_id, delivery_status) FROM stdin;
+\.
+
+
+--
+-- Name: delivery_job_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('delivery_job_id_seq', 1, false);
 
 
 --
 -- Name: delivery_userdef; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
 --
 
-SELECT pg_catalog.setval('delivery_userdef', 148, true);
+SELECT pg_catalog.setval('delivery_userdef', 150, true);
 
 
 --
@@ -345,6 +404,14 @@ ALTER TABLE ONLY delivery
 
 
 --
+-- Name: delivery_schedule_pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY delivery_job
+    ADD CONSTRAINT delivery_schedule_pk PRIMARY KEY (id);
+
+
+--
 -- Name: navtree_pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
 --
 
@@ -390,6 +457,22 @@ ALTER TABLE ONLY delivery
 
 ALTER TABLE ONLY delivery
     ADD CONSTRAINT delivery_modified_by FOREIGN KEY (modified_by) REFERENCES operator(id);
+
+
+--
+-- Name: delivery_schedule_delivery_fk; Type: FK CONSTRAINT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY delivery_job
+    ADD CONSTRAINT delivery_schedule_delivery_fk FOREIGN KEY (delivery_id) REFERENCES delivery(id);
+
+
+--
+-- Name: delivery_schedule_recipient_fk; Type: FK CONSTRAINT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY delivery_job
+    ADD CONSTRAINT delivery_schedule_recipient_fk FOREIGN KEY (recipient_id) REFERENCES recipient(id);
 
 
 --

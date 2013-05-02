@@ -4,7 +4,8 @@
    [clojure.java.io :as io]
    [mailcrunch.backend.db :as mdb]
    [mailcrunch.view.navtree :as navtree]
-   [mailcrunch.view.delivery :as delivery])
+   [mailcrunch.view.delivery :as delivery]
+	 [clojurewerkz.quartzite.scheduler :as qs])
   (:use
    [ring.util.mime-type :only [ext-mime-type]]
    [ring.middleware.multipart-params :only [wrap-multipart-params]]
@@ -64,9 +65,15 @@
 	 (wrap-multipart-params)))
 
 
+(defn- startup 
+	"Initialize Qartzite for managing delivery jobs"
+	[]
+	(qs/initialize)
+  (qs/start))
 
 
 (defn create-handler []
+	(startup)
   (fn [request]
     (
      (->
