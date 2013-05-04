@@ -24,10 +24,19 @@ q.ready(function() {
   // remove the warning
   q("#warning").setStyle("display", "none");
 
-  var version = q.$$qx.core.Environment.get("qx.version");
-  if (version) {
-    q("h1").setHtml("qx.Website " + version + " API Documentation");
+  var title = "qx.Website API Documentation";
+  var customTitle = q.$$qx.core.Environment.get("apiviewer.title");
+  if (customTitle) {
+    title = customTitle;
   }
+  else {
+    var version = q.$$qx.core.Environment.get("qx.version");
+    if (version) {
+      title = "qx.Website " + version + " API Documentation";
+    }
+  }
+  q("h1").setHtml(title);
+  document.title = title;
 
   // global storage for the method index
   var data = {};
@@ -40,7 +49,6 @@ q.ready(function() {
     q(".plugin").setStyle("display", hide ? "block" : "none");
     q("li.plugin").setStyle("display", hide ? "list-item" : "none");
   });
-
 
   // load API data of q
   q.io.xhr("script/qxWeb.json").send().on("loadend", function(xhr) {
@@ -58,6 +66,22 @@ q.ready(function() {
       loadEventNorm();
       loadPolyfills();
       onContentReady();
+      attachOnScroll();
+      if (location.hash) {
+        location.href = location.href;
+        __lastHashChange = Date.now();
+      }
+      else {
+        // force a scroll event so the topmost module's samples are loaded
+        window.setTimeout(function() {
+          var cont = document.getElementById("content");
+          if (cont.scrollTop == 0) {
+            cont.scrollTop = 1;
+            cont.scrollTop = 0;
+          }
+        }, 100);
+      }
+
     } else {
       q("#warning").setStyle("display", "block");
       if (location.protocol.indexOf("file") == 0) {
@@ -66,6 +90,10 @@ q.ready(function() {
     }
   });
 
+  var __lastHashChange = null;
+  q(window).on("hashchange", function(ev) {
+    __lastHashChange = Date.now();
+  });
 
   var loadEventNorm = function() {
     var norm = q.env.get("q.eventtypes");
@@ -163,7 +191,7 @@ q.ready(function() {
       }
       onContentReady();
     });
-  }
+  };
 
 
 
@@ -218,6 +246,8 @@ q.ready(function() {
 
 
   var renderListModule = function(name, data, prefix) {
+    var checkMissing = q.$$qx.core.Environment.get("apiviewer.check.missingmethods");
+
     var list = q("#list");
     if (prefix && prefix != "event." && prefix != "normalize.") {
       list.append(q.create("<a href='#" + name + "'><h1>" + name + "</h1></a>"));
@@ -228,7 +258,10 @@ q.ready(function() {
     var ul = q.create("<ul></ul>").appendTo(list);
     data["static"].forEach(function(ast) {
       var name = getMethodName(ast, prefix);
-      var missing = isMethodMissing(name, data.classname);
+      var missing = false;
+      if (checkMissing !== false) {
+        missing = isMethodMissing(name, data.classname);
+      }
       q.template.get("list-item", {
         name: name + "()",
         missing: missing,
@@ -250,6 +283,10 @@ q.ready(function() {
 
 
   var isMethodMissing = function(name, classname) {
+    var checkMissing = q.$$qx.core.Environment.get("apiviewer.check.missingmethods");
+    if (checkMissing === false) {
+      return false;
+    }
     name = name.split(".");
     // static methods attached to q
     if (name[0] == "q") {
@@ -259,7 +296,7 @@ q.ready(function() {
           return q.type.get(parent[name[i]]) !== "Function";
         }
         parent = parent[name[i]];
-      };
+      }
     }
     // member methods of q
     if (name[0] == "") {
@@ -278,20 +315,20 @@ q.ready(function() {
           return missing;
         }
         parent = parent[classname[i]];
-      };
+      }
     }
     return false;
-  }
+  };
 
   /**
    * CONTENT
    */
-   var renderContent = function() {
-     var keys = getDataKeys();
-     for (var i = 0; i < keys.length; i++) {
-       renderModule(keys[i], data[keys[i]]);
-     }
-   };
+  var renderContent = function() {
+    var keys = getDataKeys();
+    for (var i = 0; i < keys.length; i++) {
+      renderModule(keys[i], data[keys[i]]);
+    }
+  };
 
 
    var renderModule = function(name, data, prefix) {
@@ -330,16 +367,16 @@ q.ready(function() {
          if (types[i] == "*") {
            types[i] = "all";
          }
-       };
+       }
        var typesEl = renderTypes(types);
        module.append(typesEl);
      }
 
      data["static"].forEach(function(method) {
-       renderMethod(method, prefix);
+       module.append(renderMethod(method, prefix));
      });
      data["member"].forEach(function(method) {
-       renderMethod(method, prefix);
+       module.append(renderMethod(method, prefix));
      });
    };
 
@@ -398,20 +435,20 @@ q.ready(function() {
         if (type.attributes.dimensions > 0) {
           for (var i=0; i < type.attributes.dimensions; i++) {
             typeString += "[]";
-          };
+          }
         }
         paramData.types.push(typeString);
-      };
+      }
       paramData.printTypes = printTypes;
       data.params.push(paramData);
-    };
+    }
     data.printParams = printParams;
     data.paramsExist = data.params.length > 0;
 
     data.plugin = isPluginMethod(data.name);
 
-    q("#content").append(q.template.get("method", data));
-  }
+    return q.template.get("method", data);
+  };
 
 
   var addClassDoc = function(name, parent) {
@@ -428,13 +465,19 @@ q.ready(function() {
         var ast = JSON.parse(xhr.responseText);
         // class doc
         var desc = getByType(ast, "desc");
+        var classDoc;
         if (desc && desc.attributes && desc.attributes.text) {
-          parent.append(parse(desc.attributes.text));
+          classDoc = q.create(parse(desc.attributes.text));
+          classDoc.insertAfter(parent.find("h1"));
         }
 
         var eventsEl = renderEvents(getEvents(ast));
         if (eventsEl) {
-          parent.append(eventsEl);
+          if (classDoc) {
+            eventsEl.insertAfter(classDoc);
+          } else {
+            eventsEl.insertAfter(parent.find("h1"));
+          }
         }
       } else {
         parent.append(
@@ -443,7 +486,7 @@ q.ready(function() {
       }
       onContentReady();
     });
-  }
+  };
 
 
   var getEvents = function(ast) {
@@ -526,7 +569,7 @@ q.ready(function() {
         module.types = constant.attributes.value;
         break;
       }
-    };
+    }
 
     module.desc = getByType(ast, "desc").attributes.text || "";
     module.events = getEvents(ast);
@@ -573,37 +616,42 @@ q.ready(function() {
     }
     // enable syntax highlighting
     if (useHighlighter) {
-      q('pre').forEach(function(el) {hljs.highlightBlock(el)});
+      q('pre').forEach(function(el) {hljs.highlightBlock(el);});
     }
+  };
 
-    loadSamples();
-  }
+  // load sample code as modules are scrolled into view
+  var seenModules = [];
+  var loadModuleSamples = function(module) {
+    var moduleName = module.getChildren("h1").getHtml();
+    var sampleUri = "./samples/" + moduleName + ".js";
+    q.io.script(sampleUri).send();
+  };
 
+  var attachOnScroll = function() {
+    var lastCheck;
 
-  var loadSamples = function() {
-    q.io.script("samples.js").send().on("loadend", function() {
-      for (var method in samples) {
-        var selector = "#" + method.replace(/\./g, "\\.");
-        q(selector).append(q.create("<h4>Examples</h4>"));
-        for (var i=0; i < samples[method].length; i++) {
-          var sample = samples[method][i].toString();
-          sample = sample.substring(sample.indexOf("\n") + 1, sample.length - 2);
-          var sampleElement = q(selector);
-          if (sampleElement[0]) {
-            if (useHighlighter) {
-              hljs.highlightBlock(q.create("<pre>").appendTo(sampleElement).setHtml(sample)[0]);
-            }
-
-          } else {
-            console && console.warn("Sample could not be attached for '", method, "'.")
+    var onScroll = function(ev) {
+      if (lastCheck && Date.now() - lastCheck < 500) {
+        return;
+      }
+      q(".module").forEach(function(item, index, modules) {
+        var module = modules.eq(index);
+        if (seenModules.indexOf(module[0]) == -1) {
+          var pos = module.getPosition();
+          var content = q("#content");
+          var isVisible = pos.top < content.getHeight() && (pos.bottom > 0 ||
+            (pos.bottom + content.getHeight()) > 0);
+          if (isVisible) {
+            loadModuleSamples(module);
+            seenModules.push(module[0]);
           }
-        };
-      }
-      // finally, jump to the selected item
-      if (location.hash) {
-        location.href = location.href;
-      }
-    });
+        }
+      });
+      lastCheck = Date.now();
+    };
+
+    q("#content").on("scroll", onScroll);
   };
 
 
@@ -635,7 +683,7 @@ q.ready(function() {
         if (item.type == type) {
           return item;
         }
-      };
+      }
     }
     return {attributes: {}, children: []};
   };
@@ -652,7 +700,7 @@ q.ready(function() {
   var getModuleNameFromClassName = function(name) {
     name = name.split(".");
     return name[name.length -1];
-  }
+  };
 
   var isInternal = function(item) {
     return item.attributes.isInternal ||
@@ -730,4 +778,257 @@ q.ready(function() {
     q("#content").setStyles({position: "absolute", bottom: "auto"});
     q("#header-wrapper").setStyle("position", "absolute");
   }
+
+  var outdentWhitespace = function (snippet) {
+    var firstNonWhitespacePos = snippet.search(/\S/);
+    if (firstNonWhitespacePos !== -1) {
+      var outdentRegex = new RegExp("^ {"+(firstNonWhitespacePos-1)+"}", "mg");
+      return snippet.replace(outdentRegex, "");
+    }
+    return snippet;
+  };
+
+  var formatJavascript = function(snippet) {
+    snippet = snippet.toString().replace(/^function.*?\{/, "");
+    snippet = snippet.substr(0, snippet.length - 1);
+    snippet = outdentWhitespace(snippet);
+    snippet = snippet.replace(/\n/, "").replace(/[\s]+$/, "");
+    return snippet;
+  };
+
+  __sampleFinalizeTimeout = null;
+
+  var appendSample = function(sample, header) {
+    if (!header[0]) {
+      console && console.warn("Sample could not be attached for '", method, "'.");
+      return;
+    }
+
+    // container element
+    var sampleEl = q.create("<div class='sample'></div>");
+    var pre,
+        htmlEl,
+        cssEl,
+        jsEl;
+
+    var precedingSamples = header.getSiblings(".sample");
+    if (precedingSamples.length > 0) {
+      sampleEl.insertAfter(precedingSamples.eq(precedingSamples.length - 1));
+    }
+    else {
+      sampleEl.insertAfter(header);
+    }
+
+    var codeContainer = q.create("<div class='samplecode'></div>").appendTo(sampleEl);
+
+    var stringifyArraySnippet = function (snippet) {
+        // allow multiline array code snippets like:
+        // ["<ul>",
+        //  "  <li>item 1</li>",
+        //  "  <li>item 2</li>",
+        //  "</ul>"],
+
+        var isArray = q.$$qx.Bootstrap.isArray;
+        if (isArray && isArray(snippet)) {
+            return snippet.join('\n');
+        }
+        return snippet;
+    };
+
+    // HTML
+    if (sample.html) {
+      sample.html = stringifyArraySnippet(sample.html);
+      pre = q.create("<pre class='html'></pre>");
+      q.create("<code>").appendTo(pre)[0].appendChild(document.createTextNode(sample.html));
+      htmlEl = pre[0];
+      codeContainer.append(htmlEl);
+    }
+
+    // CSS
+    if (sample.css) {
+      sample.css = stringifyArraySnippet(sample.css);
+      pre = q.create("<pre class='css'></pre>");
+      q.create("<code>").appendTo(pre)[0].appendChild(document.createTextNode(sample.css));
+      cssEl = pre[0];
+      codeContainer.append(cssEl);
+    }
+
+    // JavaScript
+    if (sample.javascript) {
+      pre = q.create("<pre class='javascript'></pre>");
+      sample.javascript = formatJavascript(sample.javascript);
+      q.create("<code>").appendTo(pre)[0].appendChild(document.createTextNode(sample.javascript));
+      jsEl = pre[0];
+      codeContainer.append(jsEl);
+    }
+
+    styleCodeBoxes(codeContainer);
+
+    if (useHighlighter) {
+      htmlEl && hljs.highlightBlock(htmlEl);
+      cssEl && hljs.highlightBlock(cssEl);
+      jsEl && hljs.highlightBlock(jsEl);
+    }
+
+    addMethodLinks(jsEl, header.getParents().getAttribute("id"));
+
+    if (useHighlighter && sample.executable) {
+      createFiddleButton(sample).appendTo(sampleEl);
+    }
+
+    if (__sampleFinalizeTimeout) {
+      clearTimeout(__sampleFinalizeTimeout);
+    }
+    __sampleFinalizeTimeout = setTimeout(function() {
+      if (__lastHashChange && (Date.now() - __lastHashChange) <= 2000) {
+        fixScrollPosition();
+      }
+    }, 500);
+  };
+
+  /**
+   * Styles the sample container based on the amount of code elements
+   * @param codeContainer {qxWeb} Collection containing the container element
+   */
+  var styleCodeBoxes = function(codeContainer) {
+    var codeBoxes = codeContainer.find("pre");
+    if (codeBoxes.length > 1) {
+      codeContainer.setStyles({display: "table",
+                              width: "100%"});
+      codeBoxes.setStyle("display", "table-cell");
+    }
+
+    if (codeBoxes.length == 2) {
+      codeBoxes.eq(0).setStyle("width", "50%");
+      codeBoxes.eq(1).setStyle("width", "50%");
+    }
+    else if (codeBoxes.length == 3) {
+      codeBoxes.eq(0).setStyle("width", "25%");
+      codeBoxes.eq(1).setStyle("width", "25%");
+      codeBoxes.eq(2).setStyle("width", "50%");
+    }
+
+    codeBoxes.getFirst().setStyle("borderTopLeftRadius", codeContainer.getStyle("borderTopLeftRadius"));
+    codeBoxes.getLast().setStyles({
+      borderTopRightRadius: codeContainer.getStyle("borderTopRightRadius"),
+      borderRight: "none"
+    });
+  };
+
+  /**
+   * wrap method names in the JS sample code with links to the method's documentation
+   * @param jsEl {Element} DOM element containing the code
+   * @param parentMethod {String} Name of the method the sample is attached to.
+   * No links will be added to this method
+   */
+  var addMethodLinks = function(jsEl, parentMethod) {
+    var methodNames = jsEl.innerHTML.replace(/\n/g, "").match(/(q?\.[a-z]+)/gi);
+    if (methodNames) {
+      q.array.unique(methodNames).forEach(function(methodName) {
+        if (methodName !== parentMethod) {
+          var method = q("#" + methodName.replace(/\./g, "\\.").replace(/\$/g, "\\$"));
+          if (method.length > 0) {
+            var codeEl = q(jsEl).find("code")[0];
+            codeEl.innerHTML = codeEl.innerHTML.replace(new RegExp(methodName + '\\b'),
+              '<a href="#' + methodName + '">' + methodName + '</a>');
+          }
+        }
+      });
+    }
+  };
+
+  var createFiddleButton = function(sample) {
+    var qUrl = "http://demo.qooxdoo.org/devel/framework/q-" +
+    q.env.get("qx.version") + ".min.js";
+    var qScript = '<script type="text/javascript" src="' + qUrl + '"></script>';
+
+    return q.create("<iframe></iframe>").setAttributes({
+      src: "fiddleframe.html",
+      marginheight: 0,
+      marginwidth: 0,
+      frameborder: 0
+    })
+    .addClass("fiddleframe").on("load", function(ev) {
+      var iframeBody = q(this[0].contentWindow.document.body);
+
+      if (sample.javascript) {
+        iframeBody.find("#js").setAttribute("value", sample.javascript);
+      }
+
+      if (sample.css) {
+        iframeBody.find("#css").setAttribute("value", sample.css);
+      }
+
+      if (sample.html) {
+        iframeBody.find("#html").setAttribute("value", sample.html);
+        iframeBody.find("#html").setAttribute("value", qScript + '\n' + sample.html);
+      }
+      else {
+        iframeBody.find("#html").setAttribute("value", qScript);
+      }
+
+      var button = iframeBody.find("button");
+      this.setStyles({
+        width: (button.getWidth() + 2) + "px",
+        height: button.getHeight() + "px"
+      });
+    });
+  };
+
+  var fixScrollPosition = function() {
+    var hash = window.location.hash;
+    window.location.hash = '';
+    window.location.hash = hash;
+  };
+
+  /**
+   * Adds sample code to a method's documentation. Code can be supplied wrapped in
+   * a function or as a map with one or more of the keys js, css and html.
+   * Additionally, a key named executable is supported: If the value is true, a
+   * button will be created that posts the sample's code to jsFiddle for live
+   * editing.
+   *
+   * @param methodName {String} Name of the method, e.g. ".before" or "q.create"
+   * @param sample {Function|Map} Sample code.
+   */
+  window.addSample = function(methodName, sample) {
+    // Find the doc element for the method
+    var method = q("#" + methodName.replace(/\./g, "\\.").replace(/\$/g, "\\$"));
+    if (method.length === 0) {
+      console && console.warn("Unable to add sample: No doc element found for method", methodName);
+      return;
+    }
+
+    var sampleMap;
+    if (typeof sample == "object" && sample.javascript) {
+      sampleMap = sample;
+    }
+    else if (typeof sample === "function") {
+      sampleMap = {
+        javascript: sample
+      };
+    }
+
+    if (!sampleMap.javascript) {
+      return;
+    }
+
+    // Find existing "Examples" heading
+    var headerElement = null;
+    var subHeaders = method.getChildren("h4");
+    for (var i=0, l=subHeaders.length; i<l; i++) {
+      var header = subHeaders.eq(i);
+      if (header.getHtml() == "Examples") {
+        headerElement = header;
+        break;
+      }
+    }
+    // No heading found, create one
+    if (!headerElement) {
+      headerElement = q.create("<h4>Examples</h4>");
+      method.append(headerElement);
+    }
+
+    appendSample(sampleMap, headerElement);
+  };
 });

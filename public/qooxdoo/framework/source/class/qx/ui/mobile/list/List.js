@@ -81,6 +81,10 @@ qx.Class.define("qx.ui.mobile.list.List",
     if (delegate) {
       this.setDelegate(delegate);
     }
+
+    if (qx.core.Environment.get("qx.dynlocale")) {
+      qx.locale.Manager.getInstance().addListener("changeLocale", this._onChangeLocale, this);
+    }
   },
 
 
@@ -146,8 +150,6 @@ qx.Class.define("qx.ui.mobile.list.List",
   },
 
 
-
-
  /*
   *****************************************************************************
      MEMBERS
@@ -175,6 +177,12 @@ qx.Class.define("qx.ui.mobile.list.List",
     {
       var element = evt.getOriginalTarget();
       var index = -1;
+      
+      // Click on border: do nothing.
+      if(element.tagName == "UL") {
+        return;
+      }
+      
       while (element.tagName != "LI") {
         element = element.parentNode;
       }
@@ -198,7 +206,7 @@ qx.Class.define("qx.ui.mobile.list.List",
       if (value != null) {
         value.addListener("changeBubble", this.__onModelChangeBubble, this);
       }
-      
+
       if (old != null) {
         old.removeListener("change", this.__onModelChange, this);
       }
@@ -216,8 +224,8 @@ qx.Class.define("qx.ui.mobile.list.List",
       
       this.__render();
     },
-    
-    
+
+
     // property apply
     _applyDelegate : function(value, old) {
       this.__provider.setDelegate(value);
@@ -232,7 +240,23 @@ qx.Class.define("qx.ui.mobile.list.List",
       this.__render();
     },
 
-    
+    /**
+     * Locale change event handler
+     *
+     * @signature function(e)
+     * @param e {Event} the change event
+     */
+    _onChangeLocale : qx.core.Environment.select("qx.dynlocale",
+    {
+      "true" : function(e)
+      {
+        this.__render();
+      },
+
+      "false" : null
+    }),
+
+
     /**
      * Reacts on model 'change' event.
      * @param evt {qx.event.type.Data} data event which contains model change data.
@@ -242,8 +266,8 @@ qx.Class.define("qx.ui.mobile.list.List",
         this.__render();
       }
     },
-    
-    
+
+
     /**
      * Reacts on model 'changeBubble' event.
      * @param evt {qx.event.type.Data} data event which contains model changeBubble data.
@@ -252,12 +276,68 @@ qx.Class.define("qx.ui.mobile.list.List",
     {
       if(evt) {
         var data = evt.getData();
-        if(data.name && data.old.length == data.value.length) {
-          var match = data.name.match(/\d+/);
-          var row = parseInt(match[0], 10);
-          this.__renderRow(row);
+        var isArray = (qx.lang.Type.isArray(data.old) && qx.lang.Type.isArray(data.value));
+        if(!isArray || (isArray && data.old.length == data.value.length)) {
+          var rows = this._extractRowsToRender(data.name);
+
+          for (var i=0; i < rows.length; i++) {
+            this.__renderRow(rows[i]);
+          }
         }
       }
+    },
+    
+    
+    /**
+     * Extracts all rows, which should be rendered from "changeBubble" event's
+     * data.name.
+     * @param name {String} The 'data.name' String of the "changeBubble" event,
+     *    which contains the rows that should be rendered.
+     * @return {Integer[]} An array with integer values, representing the rows which should
+     *  be rendered.
+     */
+    _extractRowsToRender : function(name) {
+      var rows = [];
+      
+      if(!name) {
+        return rows;
+      }
+      
+      // "[0-2].propertyName" | "[0].propertyName" | "0"
+      var containsPoint = (name.indexOf(".")!=-1);
+      if(containsPoint) {
+        // "[0-2].propertyName" | "[0].propertyName"
+        var candidate = name.split(".")[0];
+        
+        // Normalize
+        candidate = candidate.replace("[","");
+        candidate = candidate.replace("]","");
+        // "[0-2]" | "[0]"
+        var isRange = (candidate.indexOf("-") != -1);
+        
+        if(isRange) {
+          var rangeMembers = candidate.split("-");
+          // 0
+          var startRange = parseInt(rangeMembers[0],10);
+          // 2
+          var endRange = parseInt(rangeMembers[1],10);
+          
+          for(var i = startRange; i <= endRange; i++) {
+            rows.push(i);
+          }
+        } else {
+          // "[0]"
+          rows.push(parseInt(candidate.match(/\d+/)[0], 10));
+        }
+      } else {
+        // "0"
+        var match = name.match(/\d+/);
+        if(match.length == 1) {
+          rows.push(parseInt(match[0], 10));
+        }
+      }
+      
+      return rows;
     },
 
 
@@ -309,5 +389,8 @@ qx.Class.define("qx.ui.mobile.list.List",
   destruct : function()
   {
     this._disposeObjects("__provider");
+    if (qx.core.Environment.get("qx.dynlocale")) {
+      qx.locale.Manager.getInstance().removeListener("changeLocale", this._onChangeLocale, this);
+    }
   }
 });

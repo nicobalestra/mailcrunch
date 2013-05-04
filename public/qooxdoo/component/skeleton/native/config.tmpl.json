@@ -24,11 +24,17 @@
     "source",
     "source-all",
     "source-hybrid",
+    "source-server",
+    "source-server-reload",
+    "source-httpd-config",
     "test",
     "test-source",
-    "translation"
+    "translation",
+    "validate-config",
+    "validate-manifest",
+    "watch"
   ],
-  
+
   "default-job" : "source-hybrid",
 
   "let" :
@@ -41,7 +47,7 @@
     "ROOT"         : "."
   },
 
-  "config-warnings" : 
+  "config-warnings" :
   {
     "job-shadowing" : ["source-all-script", "common"]
   },
@@ -57,7 +63,7 @@
       [
         "$${APPLICATION}.Application"
       ],
-      
+
       "=environment" :
       {
         "qx.version"     : "${QOOXDOO_VERSION}",
@@ -67,7 +73,7 @@
 
     "source-all-script" :
     {
-      "=exclude" : 
+      "=exclude" :
       [
         "qx.test.*",
         "$${APPLICATION}.test.*"
@@ -78,7 +84,7 @@
     // using a contrib: library, it will be downloaded into the path specified
     // by the 'cache/downloads' config key
     /*
-    "libraries" : 
+    "libraries" :
     {
       "library" :
       [
@@ -95,7 +101,7 @@
     /*
     "build-script" :
     {
-      "compile-options" : 
+      "compile-options" :
       {
         "code" :
         {

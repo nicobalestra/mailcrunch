@@ -30,7 +30,7 @@
 ************************************************************************ */
 /**
  * @ignore(qx.test.Construct, qx.test.ExtendError, qx.test.ExtendNull)
- * @ignore(qx.test.ExtendQxObject, qx.test.ExtendSuper, qx.test.Super)
+ * @ignore(qx.test.ExtendQxObject, qx.test.ExtendSuper, qx.test.Super, qx.test.ROOT, qx.test.MyClass.*)
  */
 
 qx.Class.define("qx.test.Bootstrap",
@@ -49,6 +49,75 @@ qx.Class.define("qx.test.Bootstrap",
       this.assertTrue(clazz.test());
     },
 
+    testAlternativeRoot : function() {
+      var qq = {};
+      var foobar = {};
+      var myRoots = { "qq": qq, "foobar": foobar };
+      qx.Bootstrap.setRoot(myRoots);
+
+      var qqClass = qx.Bootstrap.define("qq.test.ROOT", {});
+      var foobarClass = qx.Bootstrap.define("foobar.test.ROOT", {});
+      var vanillebaerClass = qx.Bootstrap.define("vanillebaer.test.ROOT", {});
+
+      this.assertEquals(qqClass, qq.test.ROOT);
+      this.assertEquals(foobarClass, foobar.test.ROOT);
+      this.assertEquals(vanillebaerClass, window.vanillebaer.test.ROOT);
+
+      qx.Bootstrap.setRoot(undefined);
+      delete window.foobar;
+      delete window.vanillebaer;
+    },
+
+    "test: merge methods of same class (statics optimization)" : function() {
+      qx.Bootstrap.define("qx.test.MyClass", {
+        statics : {
+          methodA : function() {
+            return true;
+          }
+        }
+      });
+
+      qx.Bootstrap.define("qx.test.MyClass", {
+        statics : {
+          methodB : function() {
+            return true;
+          }
+        }
+      });
+
+      this.assertNotUndefined(qx.test.MyClass.methodA);
+      this.assertNotUndefined(qx.test.MyClass.methodB);
+
+      qx.Class.undefine("qx.test.MyClass");
+    },
+
+    "test: merge methods of same class (statics optimization) respect defer" : function() {
+      qx.Bootstrap.define("qx.test.MyClass", {
+        statics : {
+          methodA : function() {
+            return true;
+          },
+          methodB : function() {
+            return true;
+          }
+        }
+      });
+
+      qx.Bootstrap.define("qx.test.MyClass", {
+        statics : {
+          methodA : null
+        },
+        defer : function(statics)
+        {
+          statics.methodA = function() { return true; };
+        }
+      });
+
+      this.assertNotNull(qx.test.MyClass.methodA);
+      this.assertNotUndefined(qx.test.MyClass.methodB);
+
+      qx.Class.undefine("qx.test.MyClass");
+    },
 
     "test: define class with contructor" : function()
     {

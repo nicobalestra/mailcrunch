@@ -5,7 +5,8 @@
    [mailcrunch.backend.db :as mdb]
    [mailcrunch.view.navtree :as navtree]
    [mailcrunch.view.delivery :as delivery]
-	 [clojurewerkz.quartzite.scheduler :as qs])
+   [mailcrunch.view.list :as list]
+   [clojurewerkz.quartzite.scheduler :as qs])
   (:use
    [ring.util.mime-type :only [ext-mime-type]]
    [ring.middleware.multipart-params :only [wrap-multipart-params]]
@@ -51,29 +52,28 @@
     (ANY (build-url  "navtree") [] navtree/handler)
     (ANY (build-url "delivery") [] (delivery/handle-single-delivery nil))
     (ANY (build-url "delivery/count") [] delivery/handle-delivery-count)
-		(ANY (build-url "delivery/send") [] delivery/handle-send-delivery)
-		(ANY (build-url "delivery/:id") [id] (fn [ctx] 
+    (ANY (build-url "delivery/send") [] delivery/handle-send-delivery)
+    (ANY (build-url "delivery/:id") [id] (fn [ctx]
                                            (delivery/handle-single-delivery id)))
-
-    
-		
-		)
-	 
+    (ANY (build-url "list/count") [] list/handle-list-count)
+    (ANY (build-url "list/") [] (list/handle-single-list nil))
+    (ANY (build-url "list/:id") [id] (fn [ctx]
+                                       (list/handle-single-list id))))
     ;(ANY (build-url "delivery/all") [] delivery/all-deliveries))
    (wrap-trace-as-response-header)
    (wrap-json-response)
-	 (wrap-multipart-params)))
+   (wrap-multipart-params)))
 
 
-(defn- startup 
-	"Initialize Qartzite for managing delivery jobs"
-	[]
-	(qs/initialize)
+(defn- startup
+        "Initialize Qartzite for managing delivery jobs"
+        []
+        (qs/initialize)
   (qs/start))
 
 
 (defn create-handler []
-	(startup)
+        (startup)
   (fn [request]
     (
      (->

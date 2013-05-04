@@ -591,8 +591,9 @@ qx.Class.define("qx.event.handler.DragDrop",
       }
 
       // Stop event
-      if (this.__sessionActive) {
+      if (this.__sessionActive && e.getTarget() == this.__dragTarget) {
         e.stopPropagation();
+        this.__preventNextClick();
       }
 
       // Clean up
@@ -689,6 +690,17 @@ qx.Class.define("qx.event.handler.DragDrop",
 
         qx.event.Timer.once(this.__detectAction, this, 0);
       }
+    },
+
+
+    /**
+     * Tells the mouse handler to prevent the next click.
+     */
+    __preventNextClick : function() {
+      var mouseHandler = qx.event.Registration.getManager(window).getHandler(
+        qx.event.handler.Mouse
+      );
+      mouseHandler.preventNextClick();
     }
   },
 
@@ -718,6 +730,8 @@ qx.Class.define("qx.event.handler.DragDrop",
   */
 
   defer : function(statics) {
-    qx.event.Registration.addHandler(statics);
+    if (!qx.core.Environment.get("qx.emulatemouse")) {
+      qx.event.Registration.addHandler(statics);
+    }
   }
 });

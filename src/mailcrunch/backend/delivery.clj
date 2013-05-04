@@ -68,5 +68,5 @@
                       (subject)
                       (body-html)
                       (body-txt))
-        ])
-  (email/kick-off-delivery delivery))
+        ]
+    (email/kick-off-delivery delivery)))

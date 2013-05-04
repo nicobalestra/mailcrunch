@@ -72,10 +72,8 @@ qx.Class.define("qx.ui.mobile.form.Form",
 
 
     /**
-     *
-     * setter for the renderer private variable
+     * Setter for the renderer private variable
      * @param renderer {qx.ui.mobile.form.renderer.AbstractRenderer} the renderer
-     *
      */
     setRenderer : function(renderer)
     {
@@ -103,7 +101,7 @@ qx.Class.define("qx.ui.mobile.form.Form",
       for (var i = 0; i < groups.length; i++)
       {
         var group = groups[i];
-        for(var j=0; j<group.items.length; j++)
+        for(var j=0; j < group.items.length; j++)
         {
           var item = group.items[j];
           if(!item.isValid())
@@ -136,9 +134,9 @@ qx.Class.define("qx.ui.mobile.form.Form",
      * @param rowIndex {Integer} the index of the row inside the target group
      */
     showRow : function(groupIndex,rowIndex) {
-      var item = this._getItemByIndex(groupIndex,rowIndex);
+      var item = this._getItemByIndex(groupIndex, rowIndex);
       if(item) {
-        this.__renderer.hideItem(item);
+        this.__renderer.showItem(item);
       }
     },
 
@@ -149,7 +147,7 @@ qx.Class.define("qx.ui.mobile.form.Form",
      * @param rowIndex {Integer} the index of the row inside the target group
      */
     hideRow : function(groupIndex, rowIndex) {
-      var item = this._getItemByIndex(groupIndex,rowIndex);
+      var item = this._getItemByIndex(groupIndex, rowIndex);
       if(item) {
         this.__renderer.hideItem(item);
       }
@@ -162,7 +160,7 @@ qx.Class.define("qx.ui.mobile.form.Form",
      * @param rowIndex {Integer} the index of the row inside the target group
      * @return {qx.ui.form.IForm | null} The validation result.
      */
-    _getItemByIndex : function(groupIndex,rowIndex) {
+    _getItemByIndex : function(groupIndex, rowIndex) {
       var groups = this.getGroups();
       var group = groups[groupIndex];
       if(group) {

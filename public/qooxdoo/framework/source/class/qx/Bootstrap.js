@@ -29,6 +29,10 @@
 
 /**
  * Create namespace
+ *
+ * @ignore(qx.data)
+ * @ignore(qx.data.IListData)
+ * @ignore(qx.util.OOUtil)
  */
 if (!window.qx) {
   window.qx = {};
@@ -47,8 +51,8 @@ qx.Bootstrap = {
   createNamespace : function(name, object)
   {
     var splits = name.split(".");
-    var parent = window;
     var part = splits[0];
+    var parent = this.__root && this.__root[part] ? this.__root : window;
 
     for (var i=0, len=splits.length-1; i<len; i++, part=splits[i])
     {
@@ -124,14 +128,25 @@ qx.Bootstrap = {
     else
     {
       clazz = config.statics || {};
+
+      // Merge class into former class (nedded for 'optimize: ["statics"]')
+      if (qx.Bootstrap.$$registry && qx.Bootstrap.$$registry[name]) {
+        var formerClass = qx.Bootstrap.$$registry[name];
+
+        // Add/overwrite properties and return early if necessary
+        if (this.keys(clazz).length !== 0) {
+          // Execute defer to prevent too early overrides
+          if (config.defer) {
+            config.defer(clazz, proto);
+          }
+
+          for (var curProp in clazz) {
+            formerClass[curProp] = clazz[curProp];
+          }
+          return;
+        }
+      }
     }
-
-    // Create namespace
-    var basename = name ? this.createNamespace(name, clazz) : "";
-
-    // Store names in constructor/object
-    clazz.name = clazz.classname = name;
-    clazz.basename = basename;
 
     // Store type info
     clazz.$$type = "Class";
@@ -140,6 +155,13 @@ qx.Bootstrap = {
     if (!clazz.hasOwnProperty("toString")) {
       clazz.toString = this.genericToString;
     }
+
+    // Create namespace
+    var basename = name ? this.createNamespace(name, clazz) : "";
+
+    // Store names in constructor/object
+    clazz.name = clazz.classname = name;
+    clazz.basename = basename;
 
     // Execute defer section
     if (config.defer) {
@@ -175,6 +197,10 @@ qx.Bootstrap.define("qx.Bootstrap",
 {
   statics :
   {
+    /** Root for create namespace. **/
+    __root : null,
+
+
     /** Timestamp of qooxdoo based application startup */
     LOADSTART : qx.$$start || new Date(),
 
@@ -240,6 +266,18 @@ qx.Bootstrap.define("qx.Bootstrap",
      * @throws {Error} when the given object already exists.
      */
     createNamespace : qx.Bootstrap.createNamespace,
+
+
+    /**
+     * Offers the ability to change the root for creating namespaces from window to
+     * whatever object is given.
+     *
+     * @param root {Object} The root to use.
+     * @internal
+     */
+    setRoot : function(root) {
+      this.__root = root;
+    },
 
 
     /**
@@ -415,24 +453,6 @@ qx.Bootstrap.define("qx.Bootstrap",
     /**
      * Get the keys of a map as array as returned by a "for ... in" statement.
      *
-     * @deprecated {2.1.} Please use Object.keys instead.
-     * @param map {Object} the map
-     * @return {Array} array of the keys of the map
-     */
-    getKeys : function(map) {
-      if (qx.Bootstrap.DEBUG) {
-        qx.Bootstrap.warn(
-          "'qx.Bootstrap.getKeys' is deprecated. " +
-          "Please use the native 'Object.keys()' instead."
-        );
-      }
-      return qx.Bootstrap.keys(map);
-    },
-
-
-    /**
-     * Get the keys of a map as array as returned by a "for ... in" statement.
-     *
      * @signature function(map)
      * @internal
      * @param map {Object} the map
@@ -491,31 +511,6 @@ qx.Bootstrap.define("qx.Bootstrap",
       typeof(Object.keys) == "function" ? "ES5" :
         (function() {for (var key in {toString : 1}) { return key }})() !== "toString" ? "BROKEN_IE" : "default"
     ],
-
-
-    /**
-     * Get the keys of a map as string
-     *
-     * @param map {Object} the map
-     * @deprecated {2.1} Object.keys(map).join('\", "').
-     * @return {String} String of the keys of the map
-     *         The keys are separated by ", "
-     */
-    getKeysAsString : function(map)
-    {
-      if (qx.core.Environment.get("qx.debug")) {
-        qx.Bootstrap.warn(
-          "'qx.Bootstrap.getKeysAsString' is deprecared. " +
-          "Please use 'Object.keys(map).join()' instead."
-        );
-      }
-      var keys = qx.Bootstrap.keys(map);
-      if (keys.length == 0) {
-        return "";
-      }
-
-      return '"' + keys.join('\", "') + '"';
-    },
 
 
     /**
@@ -642,7 +637,7 @@ qx.Bootstrap.define("qx.Bootstrap",
     {
       // Added "value !== null" because IE throws an exception "Object expected"
       // by executing "value instanceof String" if value is a DOM element that
-      // doesn't exist. It seems that there is an internal different between a
+      // doesn't exist. It seems that there is an internal difference between a
       // JavaScript null and a null returned from calling DOM.
       // e.q. by document.getElementById("ReturnedNull").
       return (
@@ -665,7 +660,7 @@ qx.Bootstrap.define("qx.Bootstrap",
     {
       // Added "value !== null" because IE throws an exception "Object expected"
       // by executing "value instanceof Array" if value is a DOM element that
-      // doesn't exist. It seems that there is an internal different between a
+      // doesn't exist. It seems that there is an internal difference between a
       // JavaScript null and a null returned from calling DOM.
       // e.q. by document.getElementById("ReturnedNull").
       return (

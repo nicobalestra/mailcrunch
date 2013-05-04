@@ -1,0 +1,51 @@
+//
+// TOGGLEBUTTON 
+//
+
+$toggleSwitchButtonSize: 25px;
+$toggleButtonWidth:  84px;
+
+.toggleButton {
+  position:relative;
+  display: block;
+
+  cursor: pointer;
+
+  width: 84px;
+  height: 27px;
+  line-height:27px;
+  font-size: 15.5px;
+  font-weight:bold;
+
+  text-align:center;
+}
+
+.toggleButton.checked:before {
+  content: ' 'attr(data-label-checked);
+  padding-right:$toggleSwitchButtonSize;
+}
+
+.toggleButton:not(.checked):before {
+  content: ' 'attr(data-label-unchecked);
+  padding-left: $toggleSwitchButtonSize;
+}
+
+.toggleButtonSwitch {
+  position: absolute;
+  z-index:1;
+  display: block;
+  top:0px;
+
+  height: $toggleSwitchButtonSize;
+  width: $toggleSwitchButtonSize;
+
+  @include border-radius($toggleSwitchButtonSize);
+}
+
+.toggleButton:not(.checked) .toggleButtonSwitch {
+  left:0px;
+}
+
+.toggleButton.checked .toggleButtonSwitch {
+  left:$toggleButtonWidth - $toggleSwitchButtonSize - 2;
+}

@@ -58,6 +58,9 @@
  * }, this);
  * frame.startSequence(duration);
  * </pre>
+ *
+ * @ignore(performance)
+ * @ignore(performance.timing)
  */
 qx.Bootstrap.define("qx.bom.AnimationFrame",
 {
@@ -66,11 +69,17 @@ qx.Bootstrap.define("qx.bom.AnimationFrame",
   events : {
     /** Fired as soon as the animation has ended. */
     "end" : undefined,
-    /** Fired on every frame having the passed time as value. */
+
+    /**
+     * Fired on every frame having the passed time as value
+     * (might be a float for higher precision).
+     */
     "frame" : "Number"
   },
 
   members : {
+    __canceled : false,
+
     /**
      * Method used to start a series of animation frames. The series will end as
      * soon as the given duration is over.
@@ -78,9 +87,15 @@ qx.Bootstrap.define("qx.bom.AnimationFrame",
      * @param duration {Number} The duration the sequence should take.
      */
     startSequence : function(duration) {
+      this.__canceled = false;
+
       var start = +(new Date());
-      var clb = function() {
-        var time = +(new Date())
+      var clb = function(time) {
+        if (this.__canceled) {
+          this.id = null;
+          return;
+        }
+
         // final call
         if (time >= start + duration) {
           this.emit("end");
@@ -93,6 +108,15 @@ qx.Bootstrap.define("qx.bom.AnimationFrame",
       }
 
       this.id = qx.bom.AnimationFrame.request(clb, this);
+    },
+
+
+    /**
+     * Cancels a started sequence of frames. It will do nothing if no
+     * sequence is running.
+     */
+    cancelSequence : function() {
+      this.__canceled = true;
     }
   },
 
@@ -106,7 +130,7 @@ qx.Bootstrap.define("qx.bom.AnimationFrame",
 
     /**
      * Calculation of the predefined timing functions. Approximation of the real
-     * bezier curves has ben used for easier calculation. This is good and close
+     * bezier curves has been used for easier calculation. This is good and close
      * enough for the predefined functions like <code>ease</code> or
      * <code>linear</code>.
      *
@@ -145,17 +169,26 @@ qx.Bootstrap.define("qx.bom.AnimationFrame",
     /**
      * Request for an animation frame. If the native <code>requestAnimationFrame</code>
      * method is supported, it will be used. Otherwise, we use timeouts with a
-     * 30ms delay.
+     * 30ms delay. The HighResolutionTime will be used if supported but the time given
+     * to the callback will still be a timestamp starting at 1 January 1970 00:00:00 UTC.
+     *
+     * @lint ignoreUndefined(performance)
      * @param callback {Function} The callback function which will get the current
-     *   time as argument.
+     *   time as argument (which could be a float for higher precision).
      * @param context {var} The context of the callback.
      * @return {Number} The id of the request.
      */
     request : function(callback, context) {
       var req = qx.core.Environment.get("css.animation.requestframe");
 
-      var clb = function() {
-        var time = +(new Date());
+      var clb = function(time) {
+        // check for high resolution time
+        var navigationStart = window.performance && performance.timing && performance.timing.navigationStart;
+        if (time < 1e10 && navigationStart) {
+          time = navigationStart + time;
+        }
+
+        time = time || +(new Date());
         callback.call(context, time);
       };
       if (req) {

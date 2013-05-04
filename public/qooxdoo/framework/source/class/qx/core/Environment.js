@@ -177,10 +177,6 @@
  *       <td>{@link qx.bom.client.Css#getOpacity}</td>
  *     </tr>
  *     <tr>
- *       <td>deprecated since 2.1: css.overflowxy</td><td><i>Boolean</i></td><td><code>true</code></td>
- *       <td>{@link qx.bom.client.Css#getOverflowXY}</td>
- *     </tr>
- *     <tr>
  *       <td>css.textShadow</td><td><i>Boolean</i></td><td><code>true</code></td>
  *       <td>{@link qx.bom.client.Css#getTextShadow}</td>
  *     </tr>
@@ -680,6 +676,10 @@
  *       <td><i>default:</i> <code>true</code></td>
  *     </tr>
  *     <tr>
+ *       <td>qx.emulatemouse</td><td><i>Boolean</i></td><td><code>false</code></td>
+ *       <td><i>default:</i> <code>false</code></td>
+ *     </tr>
+ *     <tr>
  *       <td>qx.mobile.emulatetouch</td><td><i>Boolean</i></td><td><code>false</code></td>
  *       <td><i>default:</i> <code>false</code></td>
  *     </tr>
@@ -809,7 +809,6 @@ qx.Bootstrap.define("qx.core.Environment",
       "event.pointer"               : "qx.bom.client.Event.getPointer",
       "event.help"                  : "qx.bom.client.Event.getHelp",
       "event.hashchange"            : "qx.bom.client.Event.getHashChange",
-      "ecmascript.stacktrace"       : "qx.bom.client.EcmaScript.getStackTrace", // @deprecated {2.1}
       "ecmascript.error.stacktrace"       : "qx.bom.client.EcmaScript.getStackTrace",
       "ecmascript.array.indexof" : "qx.bom.client.EcmaScript.getArrayIndexOf",
       "ecmascript.array.lastindexof" : "qx.bom.client.EcmaScript.getArrayLastIndexOf",
@@ -885,7 +884,6 @@ qx.Bootstrap.define("qx.core.Environment",
       "css.transform.3d" : "qx.bom.client.CssTransform.get3D",
       "css.inlineblock" : "qx.bom.client.Css.getInlineBlock",
       "css.opacity" : "qx.bom.client.Css.getOpacity",
-      "css.overflowxy" : "qx.bom.client.Css.getOverflowXY",    // @deprecated {2.1}
       "css.textShadow" : "qx.bom.client.Css.getTextShadow",
       "css.textShadow.filter" : "qx.bom.client.Css.getFilterTextShadow",
       "phonegap"                    : "qx.bom.client.PhoneGap.getPhoneGap",
@@ -918,17 +916,6 @@ qx.Bootstrap.define("qx.core.Environment",
      *   (Details in the class doc)
      */
     get : function(key) {
-      if (qx.Bootstrap.DEBUG) {
-        // @deprecated {2.1}
-        if (key == "css.overflowxy") {
-          qx.Bootstrap.warn("The environment key 'css.overflowxy' is deprecated.");
-        }
-        // @deprecated {2.1}
-        if (key == "ecmascript.stacktrace") {
-          qx.Bootstrap.warn("The environment key 'ecmascript.stacktrace' is now 'ecmascript.error.stacktrace'.");
-          key = "ecmascript.error.stacktrace";
-        }
-      }
       // check the cache
       if (this.__cache[key] != undefined) {
         return this.__cache[key];
@@ -1232,6 +1219,7 @@ qx.Bootstrap.define("qx.core.Environment",
       this.add("qx.aspects", function() {return false;});
       this.add("qx.dynlocale", function() {return true;});
       this.add("qx.mobile.emulatetouch", function() {return false;});
+      this.add("qx.emulatemouse", function() {return false;});
       this.add("qx.mobile.nativescroll", function() {return false;});
       this.add("qx.blankpage", function() { return "qx/static/blank.html";});
 

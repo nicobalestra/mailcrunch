@@ -30,8 +30,6 @@
 #require(qx.lang.normalize.String)
 #require(qx.lang.normalize.Object)
 
-#use(qx.lang.Generics) // deprecated since 2.1
-
 ************************************************************************ */
 
 /**
@@ -225,6 +223,11 @@ qx.Bootstrap.define("qx.Class",
             this.__addMixin(clazz, config.include[i], false);
           }
         }
+      }
+      // If config has a 'extend' key but it's null or undefined
+      else if (config.hasOwnProperty('extend') && qx.core.Environment.get("qx.debug"))
+      {
+         throw new Error('"extend" parameter is null or undefined');
       }
 
       // Process environment
@@ -638,7 +641,7 @@ qx.Bootstrap.define("qx.Class",
 
 
     /**
-     * Whether a given class to an interface.
+     * Whether a given class complies to an interface.
      *
      * Checks whether all methods defined in the interface are
      * implemented. The class does not need to implement
@@ -1554,7 +1557,7 @@ qx.Bootstrap.define("qx.Class",
     {
       function defaultConstructor() {
         defaultConstructor.base.apply(this, arguments);
-      };
+      }
 
       return defaultConstructor;
     },

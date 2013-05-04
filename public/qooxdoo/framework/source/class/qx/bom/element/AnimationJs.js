@@ -31,6 +31,8 @@
  * feature detection for CSS animations and decides which implementation
  * (CSS or JavaScript) should be used. Most likely, this implementation should
  * be the one to use.
+ *
+ * @ignore(qx.bom.element.Style)
  */
 qx.Bootstrap.define("qx.bom.element.AnimationJs",
 {
@@ -148,6 +150,15 @@ qx.Bootstrap.define("qx.bom.element.AnimationJs",
       var units = {};
       for (var percent in keyFrames) {
         for (var name in keyFrames[percent]) {
+          // prefixed key calculation
+          var prefixed = qx.bom.Style.getPropertyName(name);
+          if (prefixed && prefixed != name) {
+            var prefixedName = qx.bom.Style.getCssName(prefixed);
+            keyFrames[percent][prefixedName] = keyFrames[percent][name];
+            delete keyFrames[percent][name];
+            name = prefixedName;
+          }
+          // check for the available units
           if (units[name] == undefined) {
             var item = keyFrames[percent][name];
             if (typeof item == "string") {
@@ -399,8 +410,9 @@ qx.Bootstrap.define("qx.bom.element.AnimationJs",
           continue;
         }
 
-        // apply element property value
-        if (key in el) {
+        // apply element property value - only if a CSS property
+        // is *not* available
+        if (typeof el.style[key] === "undefined" && key in el) {
           el[key] = styles[key];
           continue;
         }

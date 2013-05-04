@@ -255,7 +255,8 @@ qx.Class.define("qx.ui.form.Slider",
     __lastValueEvent: null,
     __dragValue: null,
 
-    __requestId : null,
+    __scrollAnimationframe : null,
+
 
     // overridden
     /**
@@ -326,8 +327,13 @@ qx.Class.define("qx.ui.form.Slider",
     {
       var axis = this.getOrientation() === "horizontal" ? "x" : "y";
       var delta = e.getWheelDelta(axis);
-      var direction =  delta > 0 ? 1 : delta < 0 ? -1 : 0;
-      this.slideBy(direction * this.getSingleStep());
+
+      if (qx.core.Environment.get("event.touch") && qx.core.Environment.get("qx.emulatemouse")) {
+        this.slideBy(delta);
+      } else {
+        var direction =  delta > 0 ? 1 : delta < 0 ? -1 : 0;
+        this.slideBy(direction * this.getSingleStep());
+      }
 
       e.stop();
     },
@@ -900,6 +906,44 @@ qx.Class.define("qx.ui.form.Slider",
      */
     slideTo : function(value, duration)
     {
+      this.stopSlideAnimation();
+
+      if (duration) {
+        this.__animateTo(value, duration);
+      } else {
+        this.updatePosition(value);
+      }
+    },
+
+
+    /**
+     * Updates the position property considering the minimum and maximum values.
+     * @param value {Number} The new position.
+     */
+    updatePosition : function(value) {
+      this.setValue(this.__normalizeValue(value));
+    },
+
+
+    /**
+     * In case a slide animation is currently running, it will be stopped.
+     * If not, the method does nothing.
+     */
+    stopSlideAnimation : function() {
+      if (this.__scrollAnimationframe) {
+        this.__scrollAnimationframe.cancelSequence();
+        this.__scrollAnimationframe = null;
+      }
+    },
+
+
+    /**
+     * Internal helper to normalize the given value concerning the minimum
+     * and maximum value.
+     * @param value {Number} The value to normalize.
+     * @return {Number} The normalized value.
+     */
+    __normalizeValue : function(value) {
       // Bring into allowed range or fix to single step grid
       if (value < this.getMinimum()) {
         value = this.getMinimum();
@@ -908,13 +952,7 @@ qx.Class.define("qx.ui.form.Slider",
       } else {
         value = this.getMinimum() + Math.round((value - this.getMinimum()) / this.getSingleStep()) * this.getSingleStep()
       }
-
-      if (duration) {
-        this.__animateTo(value, duration);
-      } else {
-        // Sync with property directly
-        this.setValue(value);
-      }
+      return value;
     },
 
 
@@ -924,27 +962,22 @@ qx.Class.define("qx.ui.form.Slider",
      * @param duration {Number} The time in milliseconds the slide to should take.
      */
     __animateTo : function(to, duration) {
-      // finish old animation before starting a new one
-      if (this.__requestId) {
-        return;
-      }
-
-      var start = +(new Date());
+      to = this.__normalizeValue(to);
       var from = this.getValue();
 
-      var clb = function(time) {
-        // final call
-        if (time >= start + duration) {
-          this.setValue(to);
-          this.__requestId = null;
-          this.fireEvent("slideAnimationEnd");
-        } else {
-          var timePassed = time - start;
-          this.setValue(parseInt(timePassed/duration * (to - from) + from));
-          qx.bom.AnimationFrame.request(clb, this);
-        }
-      };
-      qx.bom.AnimationFrame.request(clb, this);
+      this.__scrollAnimationframe = new qx.bom.AnimationFrame();
+
+      this.__scrollAnimationframe.on("frame", function(timePassed) {
+        this.setValue(parseInt(timePassed/duration * (to - from) + from));
+      }, this);
+
+      this.__scrollAnimationframe.on("end", function() {
+        this.setValue(to);
+        this.__scrollAnimationframe = null;
+        this.fireEvent("slideAnimationEnd");
+      }, this);
+
+      this.__scrollAnimationframe.startSequence(duration);
     },
 
 

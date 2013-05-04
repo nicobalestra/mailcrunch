@@ -1,0 +1,17 @@
+//
+// MENU
+// 
+
+.menu {
+  @extend .popup;
+  min-width:200px;
+}
+
+.menu .list {
+  border: none !important;
+  background: none;
+}
+
+.menu .list .list-item {
+  background: none;
+}

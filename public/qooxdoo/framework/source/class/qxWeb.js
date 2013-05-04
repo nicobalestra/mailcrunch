@@ -35,6 +35,8 @@
  *
  * For further details, take a look at the documentation in the
  * <a href='http://manual.qooxdoo.org/${qxversion}/pages/website.html' target='_blank'>user manual</a>.
+ *
+ * @ignore(q)
  */
 qx.Bootstrap.define("qxWeb", {
   extend : qx.type.BaseArray,
@@ -147,7 +149,7 @@ qx.Bootstrap.define("qxWeb", {
   /**
    * Accepts a selector string and returns a set of found items. The optional context
    * element can be used to reduce the amount of found elements to children of the
-   * context element.
+   * context element. If the context object is a collection, its first item is used.
    *
    * <a href="http://sizzlejs.com/" target="_blank">Sizzle</a> is used as selector engine.
    * Check out the <a href="https://github.com/jquery/sizzle/wiki/Sizzle-Home" target="_blank">documentation</a>
@@ -155,7 +157,7 @@ qx.Bootstrap.define("qxWeb", {
    *
    * @param selector {String|Element|Array} Valid selector (CSS3 + extensions)
    *   or DOM element or Array of DOM Elements.
-   * @param context {Element} Only the children of this element are considered.
+   * @param context {Element|q} Only the children of this element are considered.
    * @return {q} A collection of DOM elements.
    */
   construct : function(selector, context) {
@@ -164,6 +166,9 @@ qx.Bootstrap.define("qxWeb", {
     }
 
     if (qx.Bootstrap.isString(selector)) {
+      if (context instanceof qxWeb) {
+        context = context[0];
+      }
       selector = qx.bom.Selector.query(selector, context);
     } else if (!(qx.Bootstrap.isArray(selector))) {
       selector = [selector];
@@ -198,19 +203,18 @@ qx.Bootstrap.define("qxWeb", {
      */
     slice : function(begin, end) {
       // Old IEs return an empty array if the second argument is undefined
-      if (end) {
+      // check 'end' explicit for "undefined" [BUG #7322]
+      if (end !== undefined) {
         return qxWeb.$init(Array.prototype.slice.call(this, begin, end));
       }
-      else {
-        return qxWeb.$init(Array.prototype.slice.call(this, begin));
-      }
+      return qxWeb.$init(Array.prototype.slice.call(this, begin));
     },
 
 
     /**
      * Removes the given number of items and returns the removed items as a new collection.
      * This method can also add items. Take a look at the
-     * <a href='https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/splice' target='_blank'>documentation of MDN</a> for more details.
+     * <a href='https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/splice' target='_blank'>documentation of MDN</a> for more details.
      *
      * @param index {Number} The index to begin.
      * @param howMany {Number} the amount of items to remove.
@@ -224,7 +228,7 @@ qx.Bootstrap.define("qxWeb", {
 
     /**
      * Returns a new collection containing the modified elements. For more details, check out the
-     * <a href='https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/map' target='_blank'>MDN documentation</a>.
+     * <a href='https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/map' target='_blank'>MDN documentation</a>.
      *
      * @param callback {Function} Function which produces the new element.
      * @param thisarg {var} Context of the callback.

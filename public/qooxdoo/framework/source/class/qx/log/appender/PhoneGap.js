@@ -27,6 +27,8 @@
 /**
  * Processes the incoming log entry and displays it using the PhoneGap
  * logging capabilities.
+ *
+ * @ignore(debug)
  */
 qx.Class.define("qx.log.appender.PhoneGap",
 {
@@ -78,6 +80,8 @@ qx.Class.define("qx.log.appender.PhoneGap",
       }
     }
 
-    register();
+    if (qx.core.Environment.get("phonegap")) {
+      register();
+    }
   }
 });

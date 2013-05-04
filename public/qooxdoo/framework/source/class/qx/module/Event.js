@@ -114,7 +114,7 @@ qx.Bootstrap.define("qx.module.Event", {
           }
           el.__ctx[id] = ctx;
         }
-      };
+      }
       return this;
     },
 
@@ -130,54 +130,82 @@ qx.Bootstrap.define("qx.module.Event", {
      * @return {qxWeb} The collection for chaining
      */
     off : function(type, listener, context) {
+      var removeAll = (listener === null && context === null);
+
       for (var j=0; j < this.length; j++) {
         var el = this[j];
 
-        // continue if no listener are available
+        // continue if no listeners are available
         if (!el.__listener) {
           continue;
         }
 
-        for (var id in el.__listener[type]) {
-          var storedListener = el.__listener[type][id];
-          if (storedListener == listener || storedListener.original == listener) {
-            // get the stored context
-            var hasStoredContext = typeof el.__ctx !== "undefined" && el.__ctx[id];
-            if (!context && hasStoredContext) {
-              var storedContext = el.__ctx[id];
-            }
-            // remove the listener from the emitter
-            el.__emitter.off(type, storedListener, storedContext || context);
-
-            // check if it's a bound listener which means it was a native event
-            if (storedListener.original == listener) {
-              // remove the native listener
-              qx.bom.Event.removeNativeListener(el, type, storedListener);
-            }
-
-            delete el.__listener[type][id];
-
-            if (hasStoredContext) {
-              delete el.__ctx[id];
-            }
+        var types = [];
+        if (type !== null) {
+          types.push(type);
+        } else {
+          // no type specified, remove all listeners
+          for (var listenerType in el.__listener) {
+            types.push(listenerType);
           }
         }
 
-        // call hooks
-        var hooks = qx.module.Event.__hooks.off;
-        // generic
-        var typeHooks = hooks["*"] || [];
-        // type specific
-        if (hooks[type]) {
-          typeHooks = typeHooks.concat(hooks[type]);
+        for (var i=0, l=types.length; i<l; i++) {
+          for (var id in el.__listener[types[i]]) {
+            var storedListener = el.__listener[types[i]][id];
+            if (removeAll || storedListener == listener || storedListener.original == listener) {
+              // get the stored context
+              var hasStoredContext = typeof el.__ctx !== "undefined" && el.__ctx[id];
+              var storedContext;
+              if (!context && hasStoredContext) {
+                storedContext = el.__ctx[id];
+              }
+              // remove the listener from the emitter
+              el.__emitter.off(types[i], storedListener, storedContext || context);
+
+              // check if it's a bound listener which means it was a native event
+              if (removeAll || storedListener.original == listener) {
+                // remove the native listener
+                qx.bom.Event.removeNativeListener(el, types[i], storedListener);
+              }
+
+              delete el.__listener[types[i]][id];
+
+              if (hasStoredContext) {
+                delete el.__ctx[id];
+              }
+            }
+          }
+
+          // call hooks
+          var hooks = qx.module.Event.__hooks.off;
+          // generic
+          var typeHooks = hooks["*"] || [];
+          // type specific
+          if (hooks[type]) {
+            typeHooks = typeHooks.concat(hooks[type]);
+          }
+          for (var k=0, m=typeHooks.length; k<m; k++) {
+            typeHooks[k](el, type, listener, context);
+          }
         }
-        for (var i=0, m=typeHooks.length; i<m; i++) {
-          typeHooks[i](el, type, listener, context);
-        }
+
       }
+
       return this;
     },
 
+    /**
+     * Removes all event listeners (or all listeners for a given type) from the
+     * collection.
+     *
+     * @attach {qxWeb}
+     * @param type {String?} Event type. All listeners will be removed if this is undefined.
+     * @return {qxWeb} The collection for chaining
+     */
+    allOff : function(type) {
+      return this.off(type || null, null, null);
+    },
 
     /**
      * Fire an event of the given type.
@@ -194,7 +222,7 @@ qx.Bootstrap.define("qx.module.Event", {
         if (el.__emitter) {
           el.__emitter.emit(type, data);
         }
-      };
+      }
       return this;
     },
 
@@ -247,24 +275,28 @@ qx.Bootstrap.define("qx.module.Event", {
      * @param target {Element} Element to attach the copied listeners to
      */
     copyEventsTo : function(target) {
+      // Copy both arrays to make sure the original collections are not manipulated.
+      // If e.g. the 'target' array contains a DOM node with child nodes we run into
+      // problems because the 'target' array is flattened within this method.
       var source = this.concat();
+      var targetCopy = target.concat();
 
       // get all children of source and target
       for (var i = source.length - 1; i >= 0; i--) {
         var descendants = source[i].getElementsByTagName("*");
         for (var j=0; j < descendants.length; j++) {
           source.push(descendants[j]);
-        };
+        }
       }
 
-      for (var i = target.length -1; i >= 0; i--) {
-        var descendants = target[i].getElementsByTagName("*");
+      for (var i = targetCopy.length -1; i >= 0; i--) {
+        var descendants = targetCopy[i].getElementsByTagName("*");
         for (var j=0; j < descendants.length; j++) {
-          target.push(descendants[j]);
-        };
+          targetCopy.push(descendants[j]);
+        }
       }
       // make sure no emitter object has been copied
-      target.forEach(function(el) {
+      targetCopy.forEach(function(el) {
         el.__emitter = null;
       });
 
@@ -280,10 +312,10 @@ qx.Bootstrap.define("qx.module.Event", {
             if (listener.original) {
               listener = listener.original;
             }
-            qxWeb(target[i]).on(name, listener, storage[name][j].ctx);
-          };
+            qxWeb(targetCopy[i]).on(name, listener, storage[name][j].ctx);
+          }
         }
-      };
+      }
     },
 
 
@@ -504,6 +536,7 @@ qx.Bootstrap.define("qx.module.Event", {
     qxWeb.$attach({
       "on" : statics.on,
       "off" : statics.off,
+      "allOff" : statics.allOff,
       "once" : statics.once,
       "emit" : statics.emit,
       "hasListener" : statics.hasListener,

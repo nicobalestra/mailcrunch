@@ -58,7 +58,7 @@ qx.Bootstrap.define("qx.bom.client.Html",
      * @return {Boolean} <code>true</code> if geolocation supported
      */
     getGeoLocation : function() {
-      return navigator.geolocation != null;
+      return "geolocation" in navigator;
     },
 
 
@@ -254,7 +254,7 @@ qx.Bootstrap.define("qx.bom.client.Html",
 
     /**
      * Whether the browser supports CSS class lists.
-     * https://developer.mozilla.org/en/DOM/element.classList
+     * https://developer.mozilla.org/en-US/docs/DOM/element.classList
      *
      * @internal
      * @return {Boolean} <code>true</code> if class list is supported.

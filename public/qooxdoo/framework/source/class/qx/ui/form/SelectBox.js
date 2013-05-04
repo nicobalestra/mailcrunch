@@ -36,7 +36,7 @@
  * });
  *
  * // now the 'changeSelection' event is fired
- * selectBox.add(new qx.ui.form.ListItem("Item 1");
+ * selectBox.add(new qx.ui.form.ListItem("Item 1"));
  * </pre>
  *
  * @childControl spacer {qx.ui.core.Spacer} flexible spacer widget
@@ -72,7 +72,10 @@ qx.Class.define("qx.ui.form.SelectBox",
     this.addListener("mouseover", this._onMouseOver, this);
     this.addListener("mouseout", this._onMouseOut, this);
     this.addListener("click", this._onClick, this);
-    this.addListener("mousewheel", this._onMouseWheel, this);
+    if (!(qx.core.Environment.get("event.touch") && qx.core.Environment.get("qx.emulatemouse"))) {
+      this.addListener("mousewheel", this._onMouseWheel, this);
+    }
+
     this.addListener("keyinput", this._onKeyInput, this);
     this.addListener("changeSelection", this.__onChangeSelection, this);
   },

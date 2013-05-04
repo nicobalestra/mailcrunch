@@ -61,7 +61,7 @@
  */
 qx.Class.define("qx.ui.mobile.dialog.Picker",
 {
-  extend : qx.ui.mobile.dialog.Dialog,
+  extend : qx.ui.mobile.dialog.Popup,
 
   /**
    * @param anchor {qx.ui.mobile.core.Widget ? null} The anchor widget for this item. If no anchor is available,
@@ -92,9 +92,11 @@ qx.Class.define("qx.ui.mobile.dialog.Picker",
 
     this.__pickerConfirmButton = new qx.ui.mobile.form.Button("Choose");
     this.__pickerConfirmButton.addListener("tap", this.confirm, this);
+    this.__pickerConfirmButton.addListener("touchstart", this._preventClickEvent, this);
 
     this.__pickerCancelButton = new qx.ui.mobile.form.Button("Cancel");
     this.__pickerCancelButton.addListener("tap", this.hide, this);
+    this.__pickerCancelButton.addListener("touchstart", this._preventClickEvent, this);
 
     var buttonContainer = this.__pickerButtonContainer = new qx.ui.mobile.container.Composite(new qx.ui.mobile.layout.HBox());
     buttonContainer.add(this.__pickerConfirmButton,{flex:1});
@@ -105,6 +107,8 @@ qx.Class.define("qx.ui.mobile.dialog.Picker",
 
     if(anchor) {
       this.setModal(false);
+    } else {
+      this.setModal(true);
     }
 
     this.base(arguments, this.__pickerContent, anchor) ;
@@ -402,15 +406,17 @@ qx.Class.define("qx.ui.mobile.dialog.Picker",
      */
     _fixPickerSlotHeight : function(target) {
       this.__labelHeight = target.children[0].offsetHeight;
+      
       var labelCount = target.children.length;
       var pickerSlotHeight = labelCount * this.__labelHeight;
-      qx.bom.element.Style.set(target,"height",pickerSlotHeight+"px");
+      
+      qx.bom.element.Style.set(target, "height", pickerSlotHeight+"px");
     },
 
 
     /**
      * Handler for touchstart events on picker slot.
-     * @param evt {qx.event.type.Touch} The touch event
+     * @param evt {qx.event.type.Touch} The touch event.
      */
     _onTouchStart : function(evt) {
       var target = evt.getCurrentTarget().getContainerElement();
@@ -445,7 +451,7 @@ qx.Class.define("qx.ui.mobile.dialog.Picker",
 
       var isSwipe = Math.abs(deltaY) >= this.__labelHeight/2;
 
-      if(isSwipe){
+      if(isSwipe) {
         // SWIPE
         //
         // Apply selectedIndex
@@ -487,39 +493,39 @@ qx.Class.define("qx.ui.mobile.dialog.Picker",
      * @param evt {qx.event.type.Touch} The touch event
      */
     _onTouchMove : function(evt) {
-        var target = evt.getCurrentTarget();
-        var targetElement = evt.getCurrentTarget().getContainerElement();
-        var targetId = targetElement.id;
+      var target = evt.getCurrentTarget();
+      var targetElement = evt.getCurrentTarget().getContainerElement();
+      var targetId = targetElement.id;
 
-        var deltaY = evt.getScreenTop() - this.__slotTouchStartPoints[targetId].y;
+      var deltaY = evt.getScreenTop() - this.__slotTouchStartPoints[targetId].y;
 
-        var selectedIndex = this.__selectedIndex[targetId];
-        var offsetTop = -selectedIndex*this.__labelHeight;
+      var selectedIndex = this.__selectedIndex[targetId];
+      var offsetTop = -selectedIndex*this.__labelHeight;
 
-        var targetOffset = deltaY + offsetTop;
+      var targetOffset = deltaY + offsetTop;
 
-        // BOUNCING
-        var upperBounce = this.__labelHeight/3;
-        var lowerBounce = -targetElement.offsetHeight+this.__labelHeight*4.5;
-        if(targetOffset > upperBounce) {
-          targetOffset = upperBounce;
-        }
+      // BOUNCING
+      var upperBounce = this.__labelHeight/3;
+      var lowerBounce = -targetElement.offsetHeight + this.__labelHeight * 4.5;
+      if(targetOffset > upperBounce) {
+        targetOffset = upperBounce;
+      }
 
-        if(targetOffset < lowerBounce) {
-          targetOffset = lowerBounce;
-        }
+      if(targetOffset < lowerBounce) {
+        targetOffset = lowerBounce;
+      }
 
-        target.setTranslateY(targetOffset);
+      target.setTranslateY(targetOffset);
 
-        var steps = Math.round(-deltaY/this.__labelHeight);
-        var newIndex = selectedIndex+steps;
+      var steps = Math.round(-deltaY/this.__labelHeight);
+      var newIndex = selectedIndex+steps;
 
-        var modelLength = this._getModelByElement(targetElement).getLength();
-        if(newIndex < modelLength && newIndex >= 0) {
-            this.__targetIndex[targetId] = newIndex;
-        }
+      var modelLength = this._getModelByElement(targetElement).getLength();
+      if(newIndex < modelLength && newIndex >= 0) {
+          this.__targetIndex[targetId] = newIndex;
+      }
 
-        evt.preventDefault();
+      evt.preventDefault();
     },
 
 

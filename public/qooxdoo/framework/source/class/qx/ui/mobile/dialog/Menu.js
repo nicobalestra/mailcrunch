@@ -5,7 +5,7 @@
    http://qooxdoo.org
 
    Copyright:
-     2011-2012 1&1 Internet AG, Germany, http://www.1und1.de
+     2011-2013 1&1 Internet AG, Germany, http://www.1und1.de
 
    License:
      LGPL: http://www.gnu.org/licenses/lgpl.html
@@ -18,10 +18,9 @@
 ************************************************************************ */
 
 /**
- * This widget displays a menu. A dialog menu extends a dialog and contains a
+ * This widget displays a menu. A dialog menu extends a popup and contains a
  * list, which provides the user the possibility to select one value.
  * The selected value is identified through selected index.
- *
  *
  *
  * *Example*
@@ -41,7 +40,8 @@
  */
 qx.Class.define("qx.ui.mobile.dialog.Menu",
 {
-  extend : qx.ui.mobile.dialog.Dialog,
+  extend : qx.ui.mobile.dialog.Popup,
+
 
   /**
    * @param itemsModel {qx.data.Array ?}, the model which contains the choosable items of the menu.
@@ -58,19 +58,18 @@ qx.Class.define("qx.ui.mobile.dialog.Menu",
     }
 
     var menuContainer = new qx.ui.mobile.container.Composite();
-    var clearButton = this.__clearButton = new qx.ui.mobile.form.Button(this.getClearButtonLabel());
-    clearButton.addListener("tap", this.__onClearButtonTap, this);
-    clearButton.setVisibility("excluded");
-
-    menuContainer.add(this.__selectionList);
-    menuContainer.add(clearButton);
+    this.__clearButton = this._createClearButton(); 
+    this.__listScroller = this._createListScroller(this.__selectionList);
+    
+    menuContainer.add(this.__listScroller);
+    menuContainer.add(this.__clearButton);
 
     this.base(arguments, menuContainer, anchor);
 
     if(anchor) {
       this.setModal(false);
     } else {
-      this._getBlocker().addListener("tap", this.__onBlockerTap, this);
+      this.setModal(true);
     }
   },
 
@@ -157,7 +156,18 @@ qx.Class.define("qx.ui.mobile.dialog.Menu",
       init : "None",
       check : "String",
       apply : "_applyClearButtonLabel"
-    }
+    },
+    
+    
+    /**
+     * The selected index of this menu.
+     */
+    selectedIndex :
+    {
+      check : "Integer",
+      apply : "_applySelectedIndex",
+      nullable : true
+    }  
   },
 
 
@@ -170,14 +180,70 @@ qx.Class.define("qx.ui.mobile.dialog.Menu",
   members :
   {
     __selectionList: null,
-    __selectedIndex: null,
     __clearButton : null,
+    __listScroller : null,
+
+     
+    // overidden
+    show : function() {
+      this.base(arguments);
+
+      if(this.getHideOnBlockerClick()) {
+        this._getBlocker().addListenerOnce("tap", this.hide, this);
+      }
+      
+      this.scrollToItem(this.getSelectedIndex());
+      
+    },
+    
+    
+    /**
+     * Creates the clearButton. Override this to customize the widget.
+     *
+     * @return {qx.ui.mobile.form.Button} the clearButton of this menu.
+     */
+    _createClearButton : function() {
+      var clearButton = new qx.ui.mobile.form.Button(this.getClearButtonLabel());
+      clearButton.addListener("tap", this.__onClearButtonTap, this);
+      clearButton.addListener("touchstart", this._preventClickEvent, this);
+      clearButton.exclude();
+      return clearButton;
+    },
+    
+    
+    /**
+     * Creates the scrollComposite for the selectionList. Override this to customize the widget.
+     * @param selectionList {qx.ui.mobile.list.List} The selectionList of this menu.
+     * @return {qx.ui.mobile.container.ScrollComposite} the scrollComposite which contains selectionList of this menu.
+     */
+    _createListScroller : function(selectionList) {
+      var listScroller = new qx.ui.mobile.container.ScrollComposite();
+      listScroller.add(selectionList, {flex:1});
+      listScroller.addCssClass("menu-scroller");
+      listScroller.setHeight(null);
+      return listScroller;
+    },
 
 
+    // overridden
+    _updatePosition : function() {
+      var titleHeight = 0;
+      var titleWidget = this.getTitleWidget();
+      if(titleWidget != null) {
+         titleHeight = qx.bom.element.Dimension.getHeight(titleWidget.getContainerElement());
+      }
+      
+      // Menu max height has to be smaller than screen height.
+      var maxHeight = qx.bom.Viewport.getHeight();
+      this.__listScroller.setHeight(maxHeight-titleHeight*3+"px");
+      this.base(arguments);
+    },
+    
+    
     /**
      * Creates the selection list. Override this to customize the widget.
      *
-     * @return {qx.ui.mobile.list.List} The selection list
+     * @return {qx.ui.mobile.list.List} The selectionList of this menu.
      */
     _createSelectionList : function() {
       var self = this;
@@ -187,7 +253,7 @@ qx.Class.define("qx.ui.mobile.dialog.Menu",
           item.setTitle(data);
           item.setShowArrow(false);
 
-          var isItemSelected = (self.__selectedIndex == row);
+          var isItemSelected = (self.getSelectedIndex() == row);
 
           if(isItemSelected) {
             item.removeCssClass(self.getUnselectedItemClass());
@@ -201,16 +267,21 @@ qx.Class.define("qx.ui.mobile.dialog.Menu",
 
       // Add an changeSelection event
       selectionList.addListener("changeSelection", this.__onListChangeSelection, this);
-      selectionList.addListener("tap", this.__onListTap, this);
-
+      selectionList.addListener("tap", this._onSelectionListTap, this);
+      
       return selectionList;
+    },
+    
+    
+    /** Handler for tap event on selection list. */
+    _onSelectionListTap : function() {
+      this.hideWithDelay(500);
     },
 
 
     /**
-     *  Sets the choosable items of the menu.
-     *
-     *  @param itemsModel {qx.data.Array}, the model of choosable items in the menu.
+     * Sets the choosable items of the menu.
+     * @param itemsModel {qx.data.Array}, the model of choosable items in the menu.
      */
     setItems : function (itemsModel) {
       if(this.__selectionList) {
@@ -221,51 +292,32 @@ qx.Class.define("qx.ui.mobile.dialog.Menu",
 
 
     /**
-     * Sets the pre-selected item.
-     * Set selectedIndex before model, because changing model triggers rendering of list.
-     * @param selectedIndex {Number}, the index of the item which should be pre-selected.
-     */
-    setSelectedIndex : function (selectedIndex) {
-      this.__selectedIndex = selectedIndex;
-    },
-
-
-    /**
-     * Hides the menu, fires an event which contains index and data.
+     * Fires an event which contains index and data.
      * @param evt {qx.event.type.Data}, contains the selected index number.
      */
     __onListChangeSelection : function (evt) {
-      var selectedIndex = evt.getData();
-      var selectedItem = this.__selectionList.getModel().getItem(selectedIndex);
-      this.setSelectedIndex(selectedIndex);
+      this.setSelectedIndex(evt.getData());
       this._render();
-
-      this.fireDataEvent("changeSelection", {index: selectedIndex, item: selectedItem});
     },
-
-
-    /**
-     * Reacts on blocker tap.
-     */
-    __onBlockerTap : function () {
-      if(this.getHideOnBlockerClick()) {
-        // Just hide dialog, no changes.
-        this.hide();
-      }
-    },
-
-
+    
+    
     /**
      * Event handler for tap on clear button.
      */
     __onClearButtonTap : function() {
       this.fireDataEvent("changeSelection", {index: null, item: null});
+      this.hide();
+    },
+    
+    
+    // property apply
+    _applySelectedIndex : function(value, old) {
+      var listModel = this.__selectionList.getModel();
       
-      // Last event which is fired by tap is a click event,
-      // so hide menu after click event.
-      // If menu is hidden before click-event, event will bubble to ui
-      // element which is behind menu, and might cause an unexpected action.
-      qx.event.Timer.once(this.hide, this, 500);
+      if(listModel != null) {
+        var selectedItem = listModel.getItem(value);
+        this.fireDataEvent("changeSelection", {index: value, item: selectedItem});
+      }
     },
 
 
@@ -283,27 +335,36 @@ qx.Class.define("qx.ui.mobile.dialog.Menu",
     _applyClearButtonLabel : function(value, old) {
        this.__clearButton.setValue(value);
     },
-
-
-    /**
-     * Reacts on selection list click.
-     */
-    __onListTap : function () {
-        // Last event which is fired by tap on List is a click event,
-        // so hide menu, first on click event.
-        // If menu is hidden before click-event, event will bubble to ui
-        // element which is behind menu, and might cause an unexpected action.
-        qx.event.Timer.once(this.hide, this, 500);
-    },
-
-
+    
+    
     /**
      * Triggers (re-)rendering of menu items.
      */
     _render : function() {
-        var tmpModel = this.__selectionList.getModel();
-        this.__selectionList.setModel(null);
-        this.__selectionList.setModel(tmpModel);
+      var tmpModel = this.__selectionList.getModel();
+      this.__selectionList.setModel(null);
+      this.__selectionList.setModel(tmpModel);
+    },
+    
+    
+    /**
+     * Scrolls the scroll wrapper of the selectionList to the item with given index.
+     * @param index {Integer}, the index of the listItem to which the listScroller should scroll to.
+     */
+    scrollToItem : function(index) {
+      if(this.__selectionList.getModel() != null) {
+        var listScrollChild = this.__listScroller.getScrollContainer();
+        var listScrollHeight = listScrollChild.getContainerElement().scrollHeight;
+        var listItemHeight = listScrollHeight/this.__selectionList.getModel().length;
+      }
+     
+      
+      var scrollY = 0;
+      if(index != null) {
+        scrollY = index * listItemHeight;
+      }
+      
+      this.__listScroller.scrollTo(0,-scrollY);
     }
   },
 
@@ -315,7 +376,10 @@ qx.Class.define("qx.ui.mobile.dialog.Menu",
 
   destruct : function()
   {
-    this._disposeObjects("__selectionList","__clearButton");
+    this.__selectionList.removeListener("tap", this._onSelectionListTap, this);
+    this.__clearButton.removeListener("touchstart", this._preventClickEvent, this);
+    
+    this._disposeObjects("__selectionList","__clearButton","__listScroller");
   }
 
 });

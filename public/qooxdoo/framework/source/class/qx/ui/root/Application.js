@@ -40,6 +40,11 @@
  *
  * This class uses a {@link qx.ui.layout.Canvas} as fixed layout. The layout
  * cannot be changed.
+ *
+ * @ignore(qx.ui.popup)
+ * @ignore(qx.ui.popup.Manager)
+ * @ignore(qx.ui.menu)
+ * @ignore(qx.ui.menu.Manager)
  */
 qx.Class.define("qx.ui.root.Application",
 {
@@ -61,6 +66,14 @@ qx.Class.define("qx.ui.root.Application",
     // Symbolic links
     this.__window = qx.dom.Node.getWindow(doc);
     this.__doc = doc;
+
+    // disable the tap highlight color for touch devices
+    if (qx.core.Environment.get("event.touch") && qx.core.Environment.get("qx.emulatemouse")) {
+      // only apply if the body is really already there (just in case)
+      if (doc.body) {
+        doc.body.style["WebkitTapHighlightColor"] = "rgba(0,0,0,0)";
+      }
+    }
 
     // Base call
     this.base(arguments);
