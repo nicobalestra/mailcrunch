@@ -1,6 +1,6 @@
 qx.Class.define("MC.remote.Query", {
   extend: MC.remote.RPC,
-  
+
   construct: function(entity){
     this.base(arguments);
 		this.entity = entity;
@@ -16,12 +16,12 @@ qx.Class.define("MC.remote.Query", {
 			var url = this.BASE_RPC_URL + this.entity;
       if (!start)
           start = "";
-      
+
       if (!end)
           end = "";
-      
+
       url += "?b=" + start + "&e=" + end;
-      
+
       this.GET(url);
     },
     get: function(id){
@@ -34,11 +34,16 @@ qx.Class.define("MC.remote.Query", {
 				var id = jsonObj.id;
 				url += ("/" + id)
 			}
-			
+
 			var json = qx.lang.Json.stringify(jsonObj);
 			this.POST(url, json);
-			
-		}
+
+		},
+    deleteByIds: function(ids){
+      console.log("GOING TO DETELE...");
+      var url = this.BASE_RPC_URL + this.entity;
+      this.DELETE(url, "id=" + ids.join(","));
+    }
 
   }
 });

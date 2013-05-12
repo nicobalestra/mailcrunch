@@ -7,7 +7,7 @@
 qx.Class.define("MC.view.delivery.DeliveryList",
 {
   extend : MC.view.AbstractEntityList,
-  
+
   construct : function(desktop){
 	  this.base(arguments);
     this.__desktop = desktop;
@@ -31,17 +31,20 @@ qx.Class.define("MC.view.delivery.DeliveryList",
         id = row.id;
         this.debug("Opening delivery form with delivery " + id);
       }
-      
+
       var deliveryForm = new MC.view.delivery.DeliveryForm(id);
       deliveryForm.setModal(true);
 			deliveryForm.addListener("close", this._refreshMyself, this);
-      
+
       this.__desktop.add(deliveryForm, {left: 0, right: 0});
       deliveryForm.open();
     },
 
     _getModel: function(){
       return new MC.model.delivery.RemoteTableModel();
+    },
+    _getEntityName: function(){
+        return "delivery";
     }
   }
   });

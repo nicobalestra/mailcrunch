@@ -3,8 +3,7 @@
             [mailcrunch.backend.triggers :as triggers]
             [korma.core :as kc]
             [mailcrunch.engine.email :as email]
-            [clojure.pprint :as pp]
-            ))
+            [clojure.pprint :as pp]))
 
 (kc/defentity ent-delivery
   (kc/table :delivery)
@@ -26,9 +25,11 @@
 
 (defn- insert-delivery [delivery]
   (kc/insert ent-delivery
-             (kc/values delivery)
-             (kc/where {:id (delivery :id)})))
+             (kc/values delivery)))
 
+(defn delete-delivery [id]
+  (kc/delete ent-delivery
+      (kc/where {:id id})))
 
 (defn save-delivery [delivery]
         (print "Delivery: ")
@@ -36,6 +37,7 @@
         (if (delivery :id)
                 (update-delivery delivery)
                 (insert-delivery delivery)))
+
 
 (def encoding "UTF-8")
 

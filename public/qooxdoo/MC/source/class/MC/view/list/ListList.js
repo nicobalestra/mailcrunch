@@ -12,7 +12,7 @@ qx.Class.define("MC.view.list.ListList",
     this.base(arguments);
     this.__desktop = desktop;
     this.setCaption("List of data views");
-    this.setStatus("Lists (number of records)");
+    this.setStatus("Lists");
    },
   members: {
     handleClose: function(){
@@ -42,6 +42,7 @@ qx.Class.define("MC.view.list.ListList",
 
     _getModel: function(){
       return new MC.model.list.ListTableModel();
-    }
+    },
+    _getEntityName: function(){return "list"}
   }
   });

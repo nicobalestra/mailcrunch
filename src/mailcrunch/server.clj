@@ -56,7 +56,7 @@
     (ANY (build-url "delivery/:id") [id] (fn [ctx]
                                            (delivery/handle-single-delivery id)))
     (ANY (build-url "list/count") [] list/handle-list-count)
-    (ANY (build-url "list/") [] (list/handle-single-list nil))
+    (ANY (build-url "list") [] (list/handle-single-list nil))
     (ANY (build-url "list/:id") [id] (fn [ctx]
                                        (list/handle-single-list id))))
     ;(ANY (build-url "delivery/all") [] delivery/all-deliveries))

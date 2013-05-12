@@ -3,6 +3,14 @@
             [cheshire.core :as ch])
   (:use [liberator.core :only [defresource request-method-in]]))
 
+
+(defn- id-from-ctx [ctx]
+  (-> ctx
+      (get-in [:request :form-params] )
+      (first)
+      (val)
+      (ch/parse-string true)))
+
 (defresource handle-delivery-count
   :handle-ok (ch/generate-string  (first (model/count)))
   :available-media-types ["text/json" "application/json"]
@@ -30,6 +38,8 @@
                               (ch/parse-string true)
                               (model/save-delivery))]
                    {:result id}))
+        :delete! (fn [ctx]
+                   (model/delete-delivery (id-from-ctx ctx)))
         :post-redirect? false
 
         :handle-created (fn [ctx] (get ctx :result))
