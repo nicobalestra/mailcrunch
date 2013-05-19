@@ -46,13 +46,34 @@ qx.Class.define("MC.view.list.ListForm",
       formContainer.add(nameLbl, {row: 0, column: 1});
       formContainer.add(nameTxt, {row: 0, column: 2});
 
+      var entityLbl = new qx.ui.basic.Label("Main Entity");
+      var entityList = new qx.ui.form.SelectBox();
+      var dummyItem = new qx.ui.form.ListItem("-please select-", null, "X");
+      entityList.add(dummyItem);
+
+
+      var query = new MC.remote.Query("entities");
+      var entities = query.selectAll();
+      query.addListener("resultsReady", function(e){
+        console.log("Trying to objectify: "+ e.getJsonResults());
+        var json = e.getJsonResults();
+        for (var curr in json){
+          var item = new qx.ui.form.ListItem(json[curr].table_name, null, json[curr].table_name);
+          entityList.add(item);
+        }
+      });
+
+      formContainer.add(entityLbl, {row: 1, column: 1});
+      this.form.add(entityList, "entity", null, "entity");
+      formContainer.add(entityList, {row: 1, column: 2});
+
       var queryLbl = new qx.ui.basic.Label("Query");
       var queryTxt = new qx.ui.form.TextArea();
       queryTxt.setAllowGrowX(true);
       queryTxt.setRequired(true);
       this.form.add(queryTxt, "query", null, "query");
-      formContainer.add(queryLbl, {row:1, column: 1});
-      formContainer.add(queryTxt, {row:1, column: 2});
+      formContainer.add(queryLbl, {row:2, column: 1});
+      formContainer.add(queryTxt, {row:2, column: 2});
       win.add(formContainer);
       win.add(this.__getActionButtons());
 

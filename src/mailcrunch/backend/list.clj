@@ -1,5 +1,5 @@
 (ns mailcrunch.backend.list
-  (:use [korma.core :only [update insert values set-fields defentity table select where]])
+  (:use [korma.core :only [delete update insert values set-fields defentity table select where]])
   (:require [mailcrunch.backend.db :as db]
             [clojure.pprint :as pp]
             [mailcrunch.backend.triggers :as triggers]))
@@ -30,6 +30,9 @@
              (values list)
              (where {:id (list :id)})))
 
+(defn delete-by-ids [ids]
+  (delete ent-list
+          (where (in :id ids))))
 
 (defn save-list [list]
         (pp/pprint list)

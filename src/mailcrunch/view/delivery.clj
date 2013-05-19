@@ -1,15 +1,9 @@
 (ns mailcrunch.view.delivery
   (:require [mailcrunch.backend.delivery :as model]
-            [cheshire.core :as ch])
+            [cheshire.core :as ch]
+            [mailcrunch.view.util :as util])
   (:use [liberator.core :only [defresource request-method-in]]))
 
-
-(defn- id-from-ctx [ctx]
-  (-> ctx
-      (get-in [:request :form-params] )
-      (first)
-      (val)
-      (ch/parse-string true)))
 
 (defresource handle-delivery-count
   :handle-ok (ch/generate-string  (first (model/count)))
@@ -39,7 +33,9 @@
                               (model/save-delivery))]
                    {:result id}))
         :delete! (fn [ctx]
-                   (model/delete-delivery (id-from-ctx ctx)))
+                   (-> ctx
+                       (util/get-ids-from-ctx)
+                       (model/delete-delivery)))
         :post-redirect? false
 
         :handle-created (fn [ctx] (get ctx :result))

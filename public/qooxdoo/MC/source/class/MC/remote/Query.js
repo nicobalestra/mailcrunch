@@ -40,9 +40,12 @@ qx.Class.define("MC.remote.Query", {
 
 		},
     deleteByIds: function(ids){
-      console.log("GOING TO DETELE...");
+      console.log("GOING TO DELETE... " + ids);
       var url = this.BASE_RPC_URL + this.entity;
-      this.DELETE(url, "id=" + ids.join(","));
+      var deleteObj = {id : ids};
+      var jsonStr = qx.lang.Json.stringify(deleteObj);
+
+      this.DELETE(url, jsonStr);
     }
 
   }

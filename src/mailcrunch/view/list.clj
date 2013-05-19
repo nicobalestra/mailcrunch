@@ -1,6 +1,7 @@
 (ns mailcrunch.view.list
   (:require [mailcrunch.backend.list :as model]
-            [cheshire.core :as ch])
+            [cheshire.core :as ch]
+            [mailcrunch.view.util :as util])
   (:use [liberator.core :only [defresource request-method-in]]))
 
 (defresource handle-list-count
@@ -30,6 +31,11 @@
                               (model/save-list))]
                    {:result id}))
         :post-redirect? false
+        :delete! (fn [ctx]
+                   (-> ctx
+                       (util/get-ids-from-ctx)
+                       (model/delete-by-ids))
+                   {:result "OK"})
 
         :handle-created (fn [ctx] (get ctx :result))
  )

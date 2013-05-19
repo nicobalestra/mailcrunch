@@ -27,9 +27,9 @@
   (kc/insert ent-delivery
              (kc/values delivery)))
 
-(defn delete-delivery [id]
-  (kc/delete ent-delivery
-      (kc/where {:id id})))
+(defn delete-delivery [ids]
+   (kc/delete ent-delivery
+              (kc/where (in :id ids))))
 
 (defn save-delivery [delivery]
         (print "Delivery: ")

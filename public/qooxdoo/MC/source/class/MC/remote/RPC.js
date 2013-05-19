@@ -59,8 +59,10 @@ qx.Class.define("MC.remote.RPC", {
 		 	if (opts.method)
 				req.setMethod(opts.method);
 
-			if (opts.params)
+			if (opts.params){
+        console.log("Calling " + this.method + " with json " + opts.params);
 				req.setRequestData({":json" : opts.params});
+      }
 		 }
      req.setUrl(url);
      req.addListener("success", function(){

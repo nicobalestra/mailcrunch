@@ -6,7 +6,9 @@
    [mailcrunch.view.navtree :as navtree]
    [mailcrunch.view.delivery :as delivery]
    [mailcrunch.view.list :as list]
-   [clojurewerkz.quartzite.scheduler :as qs])
+   [clojurewerkz.quartzite.scheduler :as qs]
+   [mailcrunch.view.meta :as meta]
+   )
   (:use
    [ring.util.mime-type :only [ext-mime-type]]
    [ring.middleware.multipart-params :only [wrap-multipart-params]]
@@ -14,8 +16,7 @@
    [ring.util.response :only [header]]
    [compojure.handler :only [api]]
    [compojure.core :only [routes ANY]]
-   [liberator.core :only [defresource wrap-trace-as-response-header]])
-  )
+   [liberator.core :only [defresource wrap-trace-as-response-header]]))
 
 (defonce RPC_BASE_URL "/rpc")
 
@@ -49,7 +50,7 @@
    (routes
     (ANY "/" [] "/public/index.html")
     (ANY "/static/*" [] static)
-    (ANY (build-url  "navtree") [] navtree/handler)
+    (ANY (build-url "navtree") [] navtree/handler)
     (ANY (build-url "delivery") [] (delivery/handle-single-delivery nil))
     (ANY (build-url "delivery/count") [] delivery/handle-delivery-count)
     (ANY (build-url "delivery/send") [] delivery/handle-send-delivery)
@@ -58,7 +59,12 @@
     (ANY (build-url "list/count") [] list/handle-list-count)
     (ANY (build-url "list") [] (list/handle-single-list nil))
     (ANY (build-url "list/:id") [id] (fn [ctx]
-                                       (list/handle-single-list id))))
+                                       (list/handle-single-list id)))
+    (ANY (build-url "entities") [] (fn [ctx]
+                                     (println "Call to entities")
+                                     (meta/handle-entities nil)))
+    (ANY (build-url "entities/count") [] meta/handle-meta-count)
+    )
     ;(ANY (build-url "delivery/all") [] delivery/all-deliveries))
    (wrap-trace-as-response-header)
    (wrap-json-response)
