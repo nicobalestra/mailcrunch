@@ -113,6 +113,89 @@ CREATE SEQUENCE delivery_userdef
 ALTER TABLE public.delivery_userdef OWNER TO mailcrunch;
 
 --
+-- Name: lists; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE lists (
+    id integer NOT NULL,
+    name character varying(200) NOT NULL,
+    query text,
+    entity character varying(100),
+    userdef_id character varying(255)
+);
+
+
+ALTER TABLE public.lists OWNER TO mailcrunch;
+
+--
+-- Name: lists_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE lists_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.lists_id_seq OWNER TO mailcrunch;
+
+--
+-- Name: lists_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailcrunch
+--
+
+ALTER SEQUENCE lists_id_seq OWNED BY lists.id;
+
+
+--
+-- Name: lists_userdef; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE lists_userdef
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.lists_userdef OWNER TO mailcrunch;
+
+--
+-- Name: mailcrunch_entities; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+CREATE TABLE mailcrunch_entities (
+    table_name character varying,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE public.mailcrunch_entities OWNER TO mailcrunch;
+
+--
+-- Name: mailcrunch-entities_id_seq; Type: SEQUENCE; Schema: public; Owner: mailcrunch
+--
+
+CREATE SEQUENCE "mailcrunch-entities_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public."mailcrunch-entities_id_seq" OWNER TO mailcrunch;
+
+--
+-- Name: mailcrunch-entities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailcrunch
+--
+
+ALTER SEQUENCE "mailcrunch-entities_id_seq" OWNED BY mailcrunch_entities.id;
+
+
+--
 -- Name: navtree; Type: TABLE; Schema: public; Owner: mailcrunch; Tablespace: 
 --
 
@@ -255,6 +338,20 @@ ALTER TABLE ONLY delivery_job ALTER COLUMN id SET DEFAULT nextval('delivery_job_
 -- Name: id; Type: DEFAULT; Schema: public; Owner: mailcrunch
 --
 
+ALTER TABLE ONLY lists ALTER COLUMN id SET DEFAULT nextval('lists_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailcrunch
+--
+
+ALTER TABLE ONLY mailcrunch_entities ALTER COLUMN id SET DEFAULT nextval('"mailcrunch-entities_id_seq"'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailcrunch
+--
+
 ALTER TABLE ONLY navtree ALTER COLUMN id SET DEFAULT nextval('navtree_id_seq'::regclass);
 
 
@@ -270,41 +367,6 @@ ALTER TABLE ONLY recipient ALTER COLUMN id SET DEFAULT nextval('recipient_id_seq
 --
 
 COPY delivery (userdef_id, subject, from_email_address, friendly_name, body_html, body_text, id, last_modified_date, created_by, modified_by, creation_date) FROM stdin;
-87	CICCIO	nicoletto@ciccio	\N	\N	\N	101	\N	\N	\N	\N
-88	CICCIO	nicoletto@ciccio.com	\N	\N	\N	102	\N	\N	\N	\N
-89	CICCIO	nicoletto@ciccio.com	\N	\N	\N	103	\N	\N	\N	\N
-96	TEST2	gio	\N	\N	\N	110	\N	\N	\N	\N
-98	TEST2	gino	\N	\N	\N	112	\N	\N	\N	\N
-99	TEST2	gino	\N	\N	\N	113	\N	\N	\N	\N
-105	gino	ahahah	\N	\N	\N	136	\N	\N	\N	\N
-delivery131	ccccccccccc	aaaaaa	hbbbbbbbb	\N	\N	139	\N	\N	\N	\N
-delivery132	saaaaaaaaaaaaaa	aaaaaaaaaaa	ddddddddd	\N	\N	140	\N	\N	\N	\N
-delivery133	sdfsdf	test creationdate	ss	\N	\N	141	\N	\N	\N	\N
-delivery135	test date	test date	test date	\N	\N	142	\N	\N	\N	1970-01-01 01:00:00.339+01
-delivery136	datetest	another date test	test	\N	\N	143	\N	\N	\N	1970-01-01 01:00:00.94+01
-delivery137	bbbbbbbbaAAA	sdfdsf	aaaa	\N	\N	144	\N	\N	\N	2013-04-19 01:35:18.452+01
-delivery138	cucucu	CUCUCUC	gigigi	\N	\N	145	\N	\N	\N	\N
-delivery139	TEEEEEEEEEST	TEEEEEEEST	TEEEEEEEEEST	\N	\N	146	\N	\N	\N	\N
-delivery140	teeeeeeeeeeeeeeeeeeeest	teeeeeeeeeeeeeeeeeeest	teeeeeeeeeeeeeeeeeeeest	\N	\N	147	\N	\N	\N	\N
-85	CICCIO	nicoletto@	\N	\N	\N	99	\N	\N	\N	\N
-delivery141	aaaaaa	aaa	aa	\N	\N	148	\N	\N	\N	\N
-delivery142	AAAAAAAAAAAAAAAAAAAAAAAA	AAAAAAAAA	AAAAAAAAAAAAa	\N	\N	149	\N	\N	\N	\N
-delivery143	BBBBBBBBBBBB	BBBBBBBB	B	\N	\N	150	\N	\N	\N	\N
-delivery144	CCCCCCCCCCC	CCCCCCCCCCC	\N	\N	\N	151	\N	\N	\N	\N
-delivery145	GIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIINO	GIIIIIIIIINO	GIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIINO	\N	\N	152	\N	\N	\N	\N
-delivery146	CHECCO	CHECCO	CHECC	\N	\N	153	\N	\N	\N	\N
-94	TEST2	FROOOOOOOOOM	FRIENDLY NAME	\N	\N	108	\N	\N	\N	\N
-104	gino		fffffffffff	\N	\N	135	\N	\N	\N	\N
-delivery1	test delivery	CAAAAAAAAAAAALLL	CAAAAAAAAAAAAAAAAALLL	\N	lsdksdf	19	\N	\N	\N	\N
-82	CICCIO	CIICCIIIIIIIO	\N	\N	\N	96	\N	\N	\N	\N
-83	CICCIO	nicoYUUUUUUUUUU	\N	\N	\N	97	\N	\N	\N	\N
-84	CICCIO	nicolettoUCCCIUCCI	\N	\N	\N	98	\N	\N	\N	\N
-delivery147	TEEEEEEEEEEEEESTTTTTTTTTAAAAAAAAAAA	aaaaaaaaaaaaTEEEEEEEEEST	\N	\N	\N	154	\N	\N	\N	\N
-delivery148	HHHHHHHHHH	hhhhhhhhhhhh	HHHHHHHHH	\N	\N	155	\N	\N	\N	\N
-delivery149	RPC	RPC	RPC	\N	\N	156	\N	\N	\N	\N
-95	TEST2	giNO	\N	\N	\N	109	\N	\N	\N	\N
-delivery150	RPC2	RPC2	RPC2	\N	\N	157	\N	\N	\N	\N
-86	CICCIOAAAAAAAAAAAAAAA	nicoletto@cicciAAAAAAAAAAAAAAAAAA	\N	<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title></title><meta http-equiv="Content-type" content="text/html; charset=UTF-8" /><style type="text/css">p { margin:0px; padding:0px; }</style></head><body style='background-color:rgba(0, 0, 0, 0);background-image:none;background-repeat:repeat;background-position:0% 0%;font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;font-size:16px;margin-top:0px;margin-bottom:0px;margin-left:0px;margin-right:0px;padding-top:5px;padding-bottom:5px;padding-left:5px;padding-right:5px;'><p><span style="font-family:Verdana;"><font size="4">Let's put something</font></span></p></body></html>	\N	100	\N	\N	\N	\N
 97	TEST2	nicobalestra@gmail.com	\N	<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title></title><meta http-equiv="Content-type" content="text/html; charset=UTF-8" /><style type="text/css">p { margin:0px; padding:0px; }</style></head><body style='background-color:rgba(0, 0, 0, 0);background-image:none;background-repeat:repeat;background-position:0% 0%;font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;font-size:16px;margin-top:0px;margin-bottom:0px;margin-left:0px;margin-right:0px;padding-top:5px;padding-bottom:5px;padding-left:5px;padding-right:5px;'><p><span style="font-family:Verdana;"><font size="4">Let's put something here</font></span></p></body></html>	\N	111	\N	\N	\N	\N
 \.
 
@@ -339,6 +401,45 @@ SELECT pg_catalog.setval('delivery_userdef', 150, true);
 
 
 --
+-- Data for Name: lists; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY lists (id, name, query, entity, userdef_id) FROM stdin;
+\.
+
+
+--
+-- Name: lists_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('lists_id_seq', 1, true);
+
+
+--
+-- Name: lists_userdef; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('lists_userdef', 2, true);
+
+
+--
+-- Name: mailcrunch-entities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
+--
+
+SELECT pg_catalog.setval('"mailcrunch-entities_id_seq"', 2, true);
+
+
+--
+-- Data for Name: mailcrunch_entities; Type: TABLE DATA; Schema: public; Owner: mailcrunch
+--
+
+COPY mailcrunch_entities (table_name, id) FROM stdin;
+delivery	1
+recipient	2
+\.
+
+
+--
 -- Data for Name: navtree; Type: TABLE DATA; Schema: public; Owner: mailcrunch
 --
 
@@ -347,7 +448,8 @@ COPY navtree (id, parent_id, userdef_id, name, acl, icon_url, weight, view) FROM
 3	0	recipients_node	Recipients	\N	\N	100	\N
 2	0	deilvery_node	Deliveries	\N	\N	101	\N
 4	2	delivery_test_node	List	\N	\N	100	delivery-list
-6	3	recipients_list_node	List	\N	\N	101	recipient-list
+6	3	recipients_list_node	All	\N	\N	101	recipient-list
+7	0	recipients_list_queries_node	Lists	\N	\N	100	list-list
 \.
 
 
@@ -355,7 +457,7 @@ COPY navtree (id, parent_id, userdef_id, name, acl, icon_url, weight, view) FROM
 -- Name: navtree_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailcrunch
 --
 
-SELECT pg_catalog.setval('navtree_id_seq', 6, true);
+SELECT pg_catalog.setval('navtree_id_seq', 7, true);
 
 
 --
@@ -412,6 +514,22 @@ ALTER TABLE ONLY delivery_job
 
 
 --
+-- Name: lists_pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY lists
+    ADD CONSTRAINT lists_pk PRIMARY KEY (id);
+
+
+--
+-- Name: mailcrunch-entities-pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY mailcrunch_entities
+    ADD CONSTRAINT "mailcrunch-entities-pk" PRIMARY KEY (id);
+
+
+--
 -- Name: navtree_pk; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
 --
 
@@ -441,6 +559,14 @@ ALTER TABLE ONLY recipient
 
 ALTER TABLE ONLY delivery
     ADD CONSTRAINT userdef_id_idx UNIQUE (userdef_id);
+
+
+--
+-- Name: userdef_id_lists; Type: CONSTRAINT; Schema: public; Owner: mailcrunch; Tablespace: 
+--
+
+ALTER TABLE ONLY lists
+    ADD CONSTRAINT userdef_id_lists UNIQUE (userdef_id);
 
 
 --
